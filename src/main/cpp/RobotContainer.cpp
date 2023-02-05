@@ -6,24 +6,19 @@
 
 #include <frc2/command/button/Trigger.h>
 
-#include "commands/Autos.h"
+#include "commands/Auto.hpp"
 #include "commands/ExampleCommand.h"
 
 RobotContainer::RobotContainer() : Q1(5, 2, 9, 8) { ConfigureBindings(); }
 
 void RobotContainer::ConfigureBindings() {
-  frc2::Trigger([this] {
-    return m_subsystem.ExampleCondition();
-  }).OnTrue(ExampleCommand(&m_subsystem).ToPtr());
-
-  m_driverController.Trigger()
+  joystick.Trigger()
                .OnTrue(Q1.SetPower(0.5))
                .OnFalse(Q1.SetPower(0.0));
-  m_driverController.Button(7).OnTrue(Q1.SetTurn(0_deg));
-  m_driverController.Button(8).OnTrue(Q1.SetTurn(90_deg));
+  joystick.Button(7).OnTrue(Q1.SetTurn(0_deg));
+  joystick.Button(8).OnTrue(Q1.SetTurn(90_deg));
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  // An example command will be run in autonomous
-  return autos::ExampleAuto(&m_subsystem);
+  return autop::Auto(&Q1);
 }

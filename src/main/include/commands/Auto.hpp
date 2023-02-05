@@ -5,12 +5,12 @@
 #pragma once
 
 #include <frc2/command/CommandPtr.h>
+#include <frc2/command/RunCommand.h>
 
-#include "subsystems/ExampleSubsystem.h"
+#include "subsystems/SwervePod.hpp"
 
-namespace autos {
-/**
- * Example static factory for an autonomous command.
- */
-frc2::CommandPtr ExampleAuto(ExampleSubsystem* subsystem);
-}  // namespace autos
+namespace autop {
+frc2::CommandPtr Auto(abval::SwervePod* subsystem) {
+  return frc2::RunCommand([]() {}, {subsystem}).AndThen([]() {}, {subsystem});
+}
+}  // namespace autop

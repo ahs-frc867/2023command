@@ -9,51 +9,15 @@
 #include <frc2/command/SubsystemBase.h>
 #include <units/angle.h>
 #include <units/math.h>
+#include <math.h>
 
 namespace abval {
-// pg71 gear ration, swerve gear ratio, pulses per rot
+// pg71 gear ratio, swerve gear ratio, pulses per rot
 constexpr double swerveGearRatio = 3179.0 / 226233.0 * 48.0 / 40.0 / 7.0;
+constexpr double pi = 3.141592653589793238462643383279502884L;
 using ctre::phoenix::motorcontrol::can::TalonSRX;
 using units::radian_t;
-class Motor : public frc2::SubsystemBase {
-  TalonSRX motor;
 
- public:
-  Motor(int motorID) : motor(motorID) {}
-
-  frc2::CommandPtr SetPower(double percentage) {
-    using namespace ctre::phoenix::motorcontrol;
-    return frc2::Subsystem::RunOnce(
-        [=, this]() { motor.Set(ControlMode::PercentOutput, percentage); });
-  }
-};
-
-class SwerveMotor : public frc2::SubsystemBase {
-  TalonSRX motor;
-  frc::Encoder turn_e;
-
-  frc2::PIDController turn_pid;
-
- public:
-  SwerveMotor(int swerve_id, int encoder_channel_a, int encoder_channel_b)
-      : motor(swerve_id),
-        turn_pid(1.0, 0.0, 0.0),
-        turn_e(encoder_channel_a, encoder_channel_b) {
-    turn_e.SetDistancePerPulse(M_PI * 2.0 * swerveGearRatio);
-  }
-
-  frc2::CommandPtr SetTurnPower(double percentage) {
-    using namespace ctre::phoenix::motorcontrol;
-    return frc2::Subsystem::RunOnce([=, this]() {
-      motor.Set(ControlMode::PercentOutput, percentage);
-      frc::SmartDashboard::PutNumber("turnpower", percentage);
-    });
-  }
-
-  void Periodic() override {
-    frc::SmartDashboard::PutNumber("rotation", turn_e.GetDistance());
-  }
-};
 class SwervePod : public frc2::SubsystemBase {
  public:
   SwervePod(int drive_id, int swerve_id, int encoder_channel_a,
@@ -62,7 +26,7 @@ class SwervePod : public frc2::SubsystemBase {
         turn_m(swerve_id),
         turn_pid(-1.0, 0.0, 0.0),
         turn_e(encoder_channel_a, encoder_channel_b) {
-    turn_e.SetDistancePerPulse(M_PI * 2.0 * swerveGearRatio);
+    turn_e.SetDistancePerPulse(pi * 2.0 * swerveGearRatio);
   }
 
   frc2::CommandPtr SetPower(double percentage) {
@@ -85,7 +49,7 @@ class SwervePod : public frc2::SubsystemBase {
     radian_t ref_dir = getAbs();
     radian_t forward_dist = calcOptimal(ref_dir, r);
     radian_t back_dist = calcOptimal(ref_dir, r + 180_deg);
-    if (units::math::abs(forward_dist) > units::math::abs(back_dist)) {
+    if (units::math::abs(forward_dist) < units::math::abs(back_dist)) {
       dir = 1.0;
       frc::SmartDashboard::PutNumber(
           "calc dist", (forward_dist + radian_t(turn_e.GetDistance())).value());
@@ -94,7 +58,7 @@ class SwervePod : public frc2::SubsystemBase {
     } else {
       dir = -1.0;
       frc::SmartDashboard::PutNumber(
-          "calc dist", (forward_dist + radian_t(turn_e.GetDistance())).value());
+          "calc dist", (back_dist + radian_t(turn_e.GetDistance())).value());
       turn_pid.SetSetpoint(
           (back_dist + radian_t(turn_e.GetDistance())).value());
     }
@@ -102,8 +66,6 @@ class SwervePod : public frc2::SubsystemBase {
     return frc2::Subsystem::RunEnd(
         [=, this]() {
           frc::SmartDashboard::PutNumber("target", r.value());
-          frc::SmartDashboard::PutNumber("set", turn_pid.GetSetpoint());
-          frc::SmartDashboard::PutNumber("dist", turn_pid.GetPositionError());
           turn_m.Set(ControlMode::PercentOutput,
                      turn_pid.Calculate(turn_e.GetDistance()));
         },
@@ -115,6 +77,8 @@ class SwervePod : public frc2::SubsystemBase {
 
   void Periodic() override {
     frc::SmartDashboard::PutNumber("rotation", turn_e.GetDistance());
+    frc::SmartDashboard::PutNumber("set", turn_pid.GetSetpoint());
+    frc::SmartDashboard::PutNumber("dist", turn_pid.GetPositionError());
   }
 
   void SimulationPeriodic() override { /*does nothing*/
