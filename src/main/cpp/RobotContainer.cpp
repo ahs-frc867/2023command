@@ -7,7 +7,6 @@
 #include <frc2/command/button/Trigger.h>
 
 #include "commands/Auto.hpp"
-#include "commands/ExampleCommand.h"
 
 RobotContainer::RobotContainer() : Q1(5, 2, 9, 8) { ConfigureBindings(); }
 
@@ -17,6 +16,7 @@ void RobotContainer::ConfigureBindings() {
                .OnFalse(Q1.SetPower(0.0));
   joystick.Button(7).OnTrue(Q1.SetTurn(0_deg));
   joystick.Button(8).OnTrue(Q1.SetTurn(90_deg));
+  joystick.Button(9).OnTrue(Q1.SetTurn(-90_deg));
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {

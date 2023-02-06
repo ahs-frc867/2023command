@@ -17,8 +17,7 @@ class RobotContainer {
   frc2::CommandPtr GetAutonomousCommand();
 
  private:
-  frc2::CommandJoystick joystick{
-      abval::OperatorConstants::kDriverPort};
+  frc2::CommandJoystick joystick{abval::Constants::kDriverPort};
 
   void ConfigureBindings();
   abval::SwervePod Q1;
