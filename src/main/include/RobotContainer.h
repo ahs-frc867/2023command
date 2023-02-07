@@ -6,6 +6,7 @@
 
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/button/CommandJoystick.h>
+#include <frc/event/EventLoop.h>
 
 #include "Constants.hpp"
 #include "subsystems/SwervePod.hpp"

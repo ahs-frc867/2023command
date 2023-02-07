@@ -34,7 +34,12 @@ class SwervePod : public frc2::SubsystemBase {
         turn_m(swerve_id),
         turn_pid(-1.0, 0.0, 0.0),
         turn_e(encoder_channel_a, encoder_channel_b) {
+    using namespace ctre::phoenix::motorcontrol;
     turn_e.SetDistancePerPulse(pi * 2.0 * swerveGearRatio);
+    Subsystem::SetDefaultCommand(Subsystem::Run([=, this]() {
+      turn_m.Set(ControlMode::PercentOutput,
+                 turn_pid.Calculate(turn_e.GetDistance()));
+    }));
   }
 
   frc2::CommandPtr SetPower(double percentage) {
@@ -52,18 +57,13 @@ class SwervePod : public frc2::SubsystemBase {
 
   frc2::CommandPtr SetTurn(radian_t r) {
     using namespace ctre::phoenix::motorcontrol;
-    turn_pid.Reset();
-    turn_pid.SetSetpoint(r.value());
-    return frc2::Subsystem::Run([=, this]() {
-      turn_m.Set(ControlMode::PercentOutput,
-                 clamp(turn_pid.Calculate(turn_e.GetDistance())));
-      ;
-    });
+    r = units::math::fmod(r, 360_deg);
+    return RunOnce([this, r]() { turn_pid.SetSetpoint(r.value()); });
   }
   void Periodic() override {
     frc::SmartDashboard::PutNumber("rotation", turn_e.GetDistance());
     frc::SmartDashboard::PutNumber("set", turn_pid.GetSetpoint());
-    frc::SmartDashboard::PutNumber("dist", turn_pid.GetPositionError());
+    frc::SmartDashboard::PutNumber("err", turn_pid.GetPositionError());
   }
 
   void SimulationPeriodic() override { /*does nothing*/
@@ -82,7 +82,8 @@ class SwervePod : public frc2::SubsystemBase {
   }
 
   // assumes normalized angles
-  static radian_t calcOptimal(radian_t curr, radian_t target) {
+  radian_t calcOptimal(radian_t target) {
+    radian_t curr = getAbs();
     auto distance = target - curr;
     if (distance > 180_deg) {
       distance = distance - 360_deg;
