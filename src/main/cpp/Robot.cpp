@@ -10,7 +10,7 @@
 #include "subsystems/Limelight/LimelightNetworking.h"
 
 void Robot::RobotInit() {
-  abval::limelightNetworking::GetInstance()->setupPortForwarding();
+  abval::Limelight::GetInstance()->setupPortForwarding();
 }
 
 /**
