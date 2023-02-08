@@ -7,8 +7,11 @@
 #include <frc2/command/CommandScheduler.h>
 
 #include "subsystems/SwervePod.hpp"
+#include "subsystems/Limelight/LimelightNetworking.h"
 
-void Robot::RobotInit() {}
+void Robot::RobotInit() {
+  abval::limelightNetworking::GetInstance()->setupPortForwarding();
+}
 
 /**
  * This function is called every 20 ms, no matter the mode. Use
