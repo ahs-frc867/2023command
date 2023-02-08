@@ -4,31 +4,39 @@
 
 #include "RobotContainer.h"
 
+#include <frc/geometry/Translation2d.h>
+#include <frc2/command/Command.h>
 #include <frc2/command/CommandScheduler.h>
-#include <frc2/command/RunCommand.h>
 #include <frc2/command/button/Trigger.h>
 #include <units/angle.h>
 #include <units/length.h>
 #include <units/math.h>
 
 #include "commands/Auto.hpp"
+#include "subsystems/SwerveDrive.hpp"
 
-RobotContainer::RobotContainer() : Q1(5, 2, 9, 8) { ConfigureBindings(); }
-namespace {
-using namespace units;
-radian_t joystickangle(frc::Joystick& j) {
-  return math::atan2(meter_t(j.GetY()), meter_t(j.GetX()));
-}
-}  // namespace
+RobotContainer::RobotContainer() { ConfigureBindings(); }
 void RobotContainer::ConfigureBindings() {
   using namespace units;
   auto loop = frc2::CommandScheduler::GetInstance().GetDefaultButtonLoop();
-  joystick.Trigger().OnTrue(Q1.SetPower(0.5)).OnFalse(Q1.SetPower(0.0));
-  (joystick.AxisGreaterThan(0, 0.1, loop) ||
-   joystick.AxisGreaterThan(1, 0.1, loop))
-      .IfHigh([this]() { Q1.SetTurn(joystickangle(joystick)); });
+  swerve.SetDefaultCommand(frc2::RunCommand(
+      [this]() {
+        frc::SmartDashboard::PutNumber("joystickX", joystick.GetX());
+        frc::SmartDashboard::PutNumber("joystickY", joystick.GetY());
+        auto transform = frc::Translation2d(meter_t(joystick.GetX()),
+                                            meter_t(joystick.GetY()));
+        frc::SmartDashboard::PutNumber("ang",
+                                       transform.Angle().Radians().value());
+        frc::SmartDashboard::PutNumber("dist", transform.Norm().value());
+        if (transform.Norm() > .1_m)
+          swerve.SetVelocity(transform.RotateBy(frc::Rotation2d(90_deg)));
+        else
+          swerve.SetVelocity(frc::Translation2d(meter_t(0), meter_t(0)));
+      },
+      {&swerve}));
+  joystick.Button(7).OnTrue(swerve.zero());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  return autop::Auto(&Q1);
+  return frc2::RunCommand([]() {}).ToPtr();
 }

@@ -32,7 +32,7 @@ class SwervePod : public frc2::SubsystemBase {
             int encoder_channel_b)
       : drive(drive_id),
         turn_m(swerve_id),
-        turn_pid(-1.0, 0.0, 0.0),
+        turn_pid(1.0, 0.0, 0.0),
         turn_e(encoder_channel_a, encoder_channel_b) {
     using namespace ctre::phoenix::motorcontrol;
     turn_e.SetDistancePerPulse(pi * 2.0 * swerveGearRatio);
@@ -40,25 +40,27 @@ class SwervePod : public frc2::SubsystemBase {
       turn_m.Set(ControlMode::PercentOutput,
                  turn_pid.Calculate(turn_e.GetDistance()));
     }));
+    turn_e.SetReverseDirection(true);
   }
 
-  frc2::CommandPtr SetPower(double percentage) {
+  void SetPower(double percentage) {
     using namespace ctre::phoenix::motorcontrol;
-    return frc2::Subsystem::RunOnce([=, this]() {
-      drive.Set(ControlMode::PercentOutput, dir * percentage);
-    });
+    drive.Set(ControlMode::PercentOutput, dir * percentage);
   }
 
-  frc2::CommandPtr SetTurnPower(double percentage) {
+  void SetTurn(radian_t r) {
     using namespace ctre::phoenix::motorcontrol;
-    return frc2::Subsystem::RunOnce(
-        [=, this]() { turn_m.Set(ControlMode::PercentOutput, percentage); });
-  }
-
-  frc2::CommandPtr SetTurn(radian_t r) {
-    using namespace ctre::phoenix::motorcontrol;
+    turn_pid.Reset();
     r = units::math::fmod(r, 360_deg);
-    return RunOnce([this, r]() { turn_pid.SetSetpoint(r.value()); });
+    radian_t fwd_dist = calcOptimal(r);
+    radian_t back_dist = calcOptimal(r + 180_deg);
+    if (units::math::abs(fwd_dist) < units::math::abs(back_dist)) {
+      turn_pid.SetSetpoint(fwd_dist.value() + turn_e.GetDistance());
+      dir = 1.0;
+    } else {
+      turn_pid.SetSetpoint(back_dist.value() + turn_e.GetDistance());
+      dir = -1.0;
+    }
   }
   void Periodic() override {
     frc::SmartDashboard::PutNumber("rotation", turn_e.GetDistance());
@@ -68,6 +70,7 @@ class SwervePod : public frc2::SubsystemBase {
 
   void SimulationPeriodic() override { /*does nothing*/
   }
+  void reset() { turn_pid.Reset(); }
 
  private:
   TalonSRX drive;

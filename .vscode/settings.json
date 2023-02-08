@@ -33,6 +33,7 @@
     "initializer_list": "cpp",
     "stdexcept": "cpp",
     "streambuf": "cpp",
-    "numbers": "cpp"
+    "numbers": "cpp",
+    "cmath": "cpp"
   }
 }

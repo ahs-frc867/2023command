@@ -9,7 +9,7 @@
 #include <frc/event/EventLoop.h>
 
 #include "Constants.hpp"
-#include "subsystems/SwervePod.hpp"
+#include "subsystems/SwerveDrive.hpp"
 
 class RobotContainer {
  public:
@@ -21,5 +21,5 @@ class RobotContainer {
   frc2::CommandJoystick joystick{abval::Constants::kDriverPort};
 
   void ConfigureBindings();
-  abval::SwervePod Q1;
+  abval::SwerveDrive swerve;
 };

@@ -7,10 +7,13 @@
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/RunCommand.h>
 
+#include <span>
+
 #include "subsystems/SwervePod.hpp"
+#include "RobotContainer.h"
 
 namespace autop {
-frc2::CommandPtr Auto(abval::SwervePod* subsystem) {
-  return frc2::RunCommand([]() {}, {subsystem}).AndThen([]() {}, {subsystem});
-}
+// frc2::CommandPtr Auto(RobotContainer& r) {
+//    return frc2::RunCommand([]() {}, r.).ToPtr();
+// }
 }  // namespace autop
