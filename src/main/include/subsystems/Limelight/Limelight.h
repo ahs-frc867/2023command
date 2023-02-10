@@ -1,68 +1,64 @@
 #pragma once
 
 #include <vector>
+
 #include "networktables/NetworkTable.h"
 #include "networktables/NetworkTableInstance.h"
 
-namespace abval{
-    class Limelight {  
-    private:
-        static Limelight* instance;
+namespace abval {
+class Limelight {
+ private:
+  static Limelight* instance;
 
-        //
+  
 
-        Limelight();
-        ~Limelight();
+  Limelight();
+  ~Limelight();
 
-        //
+  
+  std::shared_ptr<nt::NetworkTable> getTable();
 
-        std::shared_ptr<nt::NetworkTable> getTable();
-    public:
-        static Limelight* GetInstance();
+ public:
+  static Limelight* GetInstance();
 
-        void setupPortForwarding();
+  void setupPortForwarding();
 
-        // Basic Targeting Data
+  // Basic Targeting Data
 
-        bool getValidTargetDetected(); // tv
-        double getTargetHorizontalOffset(); // tx
-        double getTargetVerticalOffset(); // ty
-        double getTargetArea(); // ta
+  bool getValidTargetDetected();       // tv
+  double getTargetHorizontalOffset();  // tx
+  double getTargetVerticalOffset();    // ty
+  double getTargetArea();              // ta
 
-        double getPipelineLatency(); // tl
+  double getPipelineLatency();  // tl
 
-        double getBoundingBoxShort(); // tshort
-        double getBoundingBoxLong(); // tlong
+  double getBoundingBoxShort();  // tshort
+  double getBoundingBoxLong();   // tlong
 
-        double getRoughBoundingHorizontal(); // thor
-        double getRoughBoundingVertical(); // tvert
+  double getRoughBoundingHorizontal();  // thor
+  double getRoughBoundingVertical();    // tvert
 
-        double getActivePipelineIndex(); // getpipe
+  double getActivePipelineIndex();  // getpipe
 
-        double getTargetClassID(); // tclass
+  double getTargetClassID();  // tclass
 
-        // April Tag and 3D data
+  // April Tag and 3D data
 
-        std::vector<double> getBotPose();
-        std::vector<double> getBotPose_wpiblue();
-        std::vector<double> getBotPose_wpired();
+  std::vector<double> getBotPose();
+  std::vector<double> getBotPose_wpiblue();
+  std::vector<double> getBotPose_wpired();
 
-        std::vector<double> getCameraPose_targetspace();
-        std::vector<double> getTargetPose_cameraspace();
+  std::vector<double> getCameraPose_targetspace();
+  std::vector<double> getTargetPose_cameraspace();
 
-        std::vector<double> getTargetPose_robotspace();
-        std::vector<double> getBotPose_targetspace();
+  std::vector<double> getTargetPose_robotspace();
+  std::vector<double> getBotPose_targetspace();
 
-        double getPrimaryAprilTagID();
+  double getPrimaryAprilTagID();
 
-        //
-
-        void setLEDMode(int mode);
-        void setCameraMode(int mode);
-        void setPipeline(int index);
-        void setStreamMode(int mode);
-
-        // void takeSnapshot(); too lazy to implement
-
-    };
+  void setLEDMode(int mode);
+  void setCameraMode(int mode);
+  void setPipeline(int index);
+  void setStreamMode(int mode);
+};
 }  // namespace abval
