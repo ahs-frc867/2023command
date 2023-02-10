@@ -27,13 +27,11 @@ std::shared_ptr<nt::NetworkTable> abval::Limelight::getTable(){
 // public funcs
 
 void abval::Limelight::setupPortForwarding(){
-  fmt::print("test");
-
   for (int i = 5800; i <= 5805; i++){
     wpi::PortForwarder::GetInstance().Add(i, "limelight.local", i);
   }
 
-  fmt::print("test");
+  //frc::SmartDashboard::PutString("limelightdata", "test");
 }
 
 // Basic Targeting Data
