@@ -4,6 +4,7 @@
 
 #include "RobotContainer.h"
 
+#include <fmt/format.h>
 #include <frc/geometry/Translation2d.h>
 #include <frc2/command/Command.h>
 #include <frc2/command/CommandScheduler.h>
@@ -13,12 +14,12 @@
 #include <units/math.h>
 
 #include "commands/Auto.hpp"
+#include "field.hpp"
 #include "subsystems/SwerveDrive.hpp"
 
 RobotContainer::RobotContainer() { ConfigureBindings(); }
 void RobotContainer::ConfigureBindings() {
   using namespace units;
-  auto loop = frc2::CommandScheduler::GetInstance().GetDefaultButtonLoop();
   swerve.SetDefaultCommand(frc2::RunCommand(
       [this]() {
         frc::SmartDashboard::PutNumber("joystickX", joystick.GetX());

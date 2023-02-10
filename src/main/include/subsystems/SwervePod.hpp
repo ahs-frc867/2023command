@@ -32,8 +32,8 @@ class SwervePod : public frc2::SubsystemBase {
             int encoder_channel_b)
       : drive(drive_id),
         turn_m(swerve_id),
-        turn_pid(1.0, 0.0, 0.0),
-        turn_e(encoder_channel_a, encoder_channel_b) {
+        turn_e(encoder_channel_a, encoder_channel_b),
+        turn_pid(1.0, 0.0, 0.0) {
     using namespace ctre::phoenix::motorcontrol;
     turn_e.SetDistancePerPulse(pi * 2.0 * swerveGearRatio);
     Subsystem::SetDefaultCommand(Subsystem::Run([=, this]() {
