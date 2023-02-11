@@ -87,6 +87,11 @@
     "thread": "cpp",
     "cinttypes": "cpp",
     "typeindex": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "xmemory": "cpp",
+    "xstddef": "cpp",
+    "xtr1common": "cpp",
+    "xutility": "cpp",
+    "core": "cpp"
   }
 }

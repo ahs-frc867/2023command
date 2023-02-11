@@ -20,12 +20,6 @@ using ctre::phoenix::motorcontrol::can::TalonSRX;
 using std::numbers::pi;
 using units::radian_t;
 
-inline double clamp(double a) {
-  if (a > 1.0) return 1.0;
-  if (a < -1.0) return -1.0;
-  return a;
-}
-
 class SwervePod : public frc2::SubsystemBase {
  public:
   SwervePod(int drive_id, int swerve_id, int encoder_channel_a,
@@ -34,12 +28,7 @@ class SwervePod : public frc2::SubsystemBase {
         turn_m(swerve_id),
         turn_e(encoder_channel_a, encoder_channel_b),
         turn_pid(1.0, 0.0, 0.0) {
-    using namespace ctre::phoenix::motorcontrol;
     turn_e.SetDistancePerPulse(pi * 2.0 * swerveGearRatio);
-    Subsystem::SetDefaultCommand(Subsystem::Run([=, this]() {
-      turn_m.Set(ControlMode::PercentOutput,
-                 turn_pid.Calculate(turn_e.GetDistance()));
-    }));
     turn_e.SetReverseDirection(true);
   }
 
@@ -63,6 +52,9 @@ class SwervePod : public frc2::SubsystemBase {
     }
   }
   void Periodic() override {
+    using namespace ctre::phoenix::motorcontrol;
+    turn_m.Set(ControlMode::PercentOutput,
+               turn_pid.Calculate(turn_e.GetDistance()));
     frc::SmartDashboard::PutNumber("rotation", turn_e.GetDistance());
     frc::SmartDashboard::PutNumber("set", turn_pid.GetSetpoint());
     frc::SmartDashboard::PutNumber("err", turn_pid.GetPositionError());

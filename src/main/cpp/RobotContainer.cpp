@@ -6,6 +6,7 @@
 
 #include <fmt/format.h>
 #include <frc/geometry/Translation2d.h>
+#include <frc/geometry/CoordinateSystem.h>
 #include <frc2/command/Command.h>
 #include <frc2/command/CommandScheduler.h>
 #include <frc2/command/button/Trigger.h>
@@ -22,13 +23,8 @@ void RobotContainer::ConfigureBindings() {
   using namespace units;
   swerve.SetDefaultCommand(frc2::RunCommand(
       [this]() {
-        frc::SmartDashboard::PutNumber("joystickX", joystick.GetX());
-        frc::SmartDashboard::PutNumber("joystickY", joystick.GetY());
         auto transform = frc::Translation2d(meter_t(joystick.GetX()),
                                             meter_t(joystick.GetY()));
-        frc::SmartDashboard::PutNumber("ang",
-                                       transform.Angle().Radians().value());
-        frc::SmartDashboard::PutNumber("dist", transform.Norm().value());
         if (transform.Norm() > .1_m)
           swerve.SetVelocity(transform.RotateBy(frc::Rotation2d(90_deg)));
         else
