@@ -8,14 +8,10 @@
 namespace abval {
 class Limelight {
  private:
-  static Limelight* instance;
-
-  
 
   Limelight();
   ~Limelight();
 
-  
   std::shared_ptr<nt::NetworkTable> getTable();
 
  public:

@@ -4,8 +4,6 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <wpinet/PortForwarder.h>
 namespace abval {
-Limelight* Limelight::instance = nullptr;
-
 // private functions
 
 Limelight::Limelight() {}
@@ -13,10 +11,8 @@ Limelight::Limelight() {}
 Limelight::~Limelight() {}
 
 Limelight* Limelight::GetInstance() {
-  if (Limelight::instance == nullptr) {
-    Limelight::instance = new Limelight();
-  }
-  return Limelight::instance;
+  static Limelight limelight = {};
+  return &limelight;
 }
 
 std::shared_ptr<nt::NetworkTable> Limelight::getTable() {
