@@ -12,9 +12,12 @@
 #include <frc2/command/CommandPtr.h>
 #include <units/angle.h>
 
+#include <array>
+
 #include "subsystems/SwervePod.hpp"
 
 namespace abval {
+using Headings = std::array<units::radian_t, 4>;
 class SwerveDrive : public frc2::SubsystemBase {
   SwervePod Q1;
   frc::SwerveDriveKinematics<4> kinematics;
@@ -56,6 +59,10 @@ class SwerveDrive : public frc2::SubsystemBase {
     auto states = kinematics.ToSwerveModuleStates(holonomic.Calculate(
         robot, current.trajectory.Sample(current.time), current.heading));
     // desaturate and apply states later
+  }
+
+  Headings getHeadings() const {
+    return {Q1.getHeading(), 0_rad, 0_rad, 0_rad};
   }
 
   frc2::CommandPtr zero() {

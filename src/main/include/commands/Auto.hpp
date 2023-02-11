@@ -9,11 +9,7 @@
 
 #include <span>
 
-#include "subsystems/SwervePod.hpp"
 #include "RobotContainer.h"
+#include "subsystems/SwervePod.hpp"
 
-namespace autop {
-// frc2::CommandPtr Auto(RobotContainer& r) {
-//    return frc2::RunCommand([]() {}, r.).ToPtr();
-// }
-}  // namespace autop
+namespace autop {}  // namespace autop

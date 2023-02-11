@@ -1,7 +1,6 @@
 #include "../include/subsystems/Limelight/Limelight.h"
 
 #include <fmt/format.h>
-#include <frc/smartdashboard/SmartDashboard.h>
 #include <wpinet/PortForwarder.h>
 namespace abval {
 // private functions

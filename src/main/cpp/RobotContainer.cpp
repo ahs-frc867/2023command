@@ -29,6 +29,8 @@ void RobotContainer::ConfigureBindings() {
           swerve.SetVelocity(transform.RotateBy(frc::Rotation2d(90_deg)));
         else
           swerve.SetVelocity(frc::Translation2d(meter_t(0), meter_t(0)));
+        auto headings = swerve.getHeadings();
+        
       },
       {&swerve}));
   joystick.Button(7).OnTrue(swerve.zero());

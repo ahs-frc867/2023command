@@ -4,7 +4,6 @@
 #include <fmt/format.h>
 #include <frc/Encoder.h>
 #include <frc/controller/PIDController.h>
-#include <frc/smartdashboard/SmartDashboard.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/SubsystemBase.h>
 #include <math.h>
@@ -55,14 +54,13 @@ class SwervePod : public frc2::SubsystemBase {
     using namespace ctre::phoenix::motorcontrol;
     turn_m.Set(ControlMode::PercentOutput,
                turn_pid.Calculate(turn_e.GetDistance()));
-    frc::SmartDashboard::PutNumber("rotation", turn_e.GetDistance());
-    frc::SmartDashboard::PutNumber("set", turn_pid.GetSetpoint());
-    frc::SmartDashboard::PutNumber("err", turn_pid.GetPositionError());
   }
 
-  void SimulationPeriodic() override { /*does nothing*/
-  }
   void reset() { turn_pid.Reset(); }
+
+  radian_t getHeading() const {
+    return units::math::fmod(radian_t(turn_e.GetDistance()), 360_deg);
+  }
 
  private:
   TalonSRX drive;
@@ -72,13 +70,9 @@ class SwervePod : public frc2::SubsystemBase {
   frc2::PIDController turn_pid;
   double dir = 1.0;
 
-  radian_t getAbs() const {
-    return units::math::fmod(radian_t(turn_e.GetDistance()), 360_deg);
-  }
-
   // assumes normalized angles
   radian_t calcOptimal(radian_t target) {
-    radian_t curr = getAbs();
+    radian_t curr = getHeading();
     auto distance = target - curr;
     if (distance > 180_deg) {
       distance = distance - 360_deg;
