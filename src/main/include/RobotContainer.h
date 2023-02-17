@@ -7,6 +7,7 @@
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/button/CommandJoystick.h>
 #include <frc/event/EventLoop.h>
+#include <AHRS.h>
 
 #include "Constants.hpp"
 #include "subsystems/SwerveDrive.hpp"
@@ -22,4 +23,5 @@ class RobotContainer {
 
   void ConfigureBindings();
   abval::SwerveDrive swerve;
+  AHRS gyro;
 };

@@ -6,6 +6,7 @@
 #include <frc/controller/PIDController.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/SubsystemBase.h>
+#include <frc/kinematics/SwerveModuleState.h>
 #include <math.h>
 #include <units/angle.h>
 #include <units/math.h>
@@ -31,11 +32,6 @@ class SwervePod : public frc2::SubsystemBase {
     turn_e.SetReverseDirection(true);
   }
 
-  void SetPower(double percentage) {
-    using namespace ctre::phoenix::motorcontrol;
-    drive.Set(ControlMode::PercentOutput, dir * percentage);
-  }
-
   void SetTurn(radian_t r) {
     using namespace ctre::phoenix::motorcontrol;
     turn_pid.Reset();
@@ -50,6 +46,13 @@ class SwervePod : public frc2::SubsystemBase {
       dir = -1.0;
     }
   }
+
+  void setState(frc::SwerveModuleState s){
+    using namespace ctre::phoenix::motorcontrol;
+    drive.Set(ControlMode::PercentOutput, dir * s.speed.value());
+    SetTurn(s.angle.Radians());
+  }
+
   void Periodic() override {
     using namespace ctre::phoenix::motorcontrol;
     turn_m.Set(ControlMode::PercentOutput,
