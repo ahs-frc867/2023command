@@ -51,14 +51,19 @@ class SwerveDrive : public frc2::SubsystemBase {
   }
 
 public:
-  // holonomic drive values are filler rn, adjust later
+  
+  //-- Initialization
+
   SwerveDrive()
       : Q2(2, 3, 1, 0, "Q2", 180_deg), Q1(0, 1, 3, 2, "Q1", 180_deg),
         Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
+		
         kinematics(frc::Translation2d(12_in, -9.68_in),
                    frc::Translation2d(12_in, 9.68_in),
                    frc::Translation2d(-12_in, 9.68_in),
                    frc::Translation2d(-12_in, -9.68_in)),
+		
+		// holonomic drive values are filler rn, adjust later
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
                   frc::ProfiledPIDController<units::radian>{
                       1, 0, 0,
@@ -71,9 +76,20 @@ public:
     Q4.reverseTurn(false);
   }
 
+  //-- General
+
+  // Set swerve modules' target states from chassis's target state
+  // Chassis state includes x, y, and angular velocities
+  // Swerve module state includes drive and swerve velocities
   void setSpeed(frc::ChassisSpeeds c) {
+
+	// Calculate target pod states from target state of chassis
     auto states = kinematics.ToSwerveModuleStates(c);
+
+	// If one target speed exceeds limit, normalize all speeds by limit
     kinematics.DesaturateWheelSpeeds(&states, 2_mps);
+
+	// Set pods to target states
     auto [s1, s2, s3, s4] = states;
     Q1.setState(s1);
     Q2.setState(s2);
@@ -81,6 +97,30 @@ public:
     Q4.setState(s4);
   }
 
+  //-- Pod drive
+
+  void setPower(double power) {
+    Q1.setPower(power);
+    Q2.setPower(power);
+    Q3.setPower(power);
+    Q4.setPower(power);
+  }
+
+  //-- Pod turn
+
+  Headings getHeadings() const {
+    return {Q1.getHeading(), Q2.getHeading(), Q3.getHeading(), Q4.getHeading()};
+  }
+
+  // Reset zero point as pods' current rotations
+  void zero() {
+    Q1.zero();
+    Q2.zero();
+    Q3.zero();
+    Q4.zero();
+  }
+  
+  // Set pod rotations to 0
   void home() {
     Q1.SetTurn(0_rad);
     Q2.SetTurn(0_rad);
@@ -88,27 +128,13 @@ public:
     Q4.SetTurn(0_rad);
   }
 
-  void setTrajectory(frc::Trajectory t) {
-    target.begin = std::chrono::system_clock::now();
-    target.trajectory = t;
-  }
-
-  Headings getHeadings() const {
-    return {Q1.getHeading(), Q2.getHeading(), Q3.getHeading(), Q4.getHeading()};
-  }
+  //-- Pod PID
 
   void enablePID(bool b) {
     Q1.enablePID(b);
     Q2.enablePID(b);
     Q3.enablePID(b);
     Q4.enablePID(b);
-  }
-
-  void zero() {
-    Q1.zero();
-    Q2.zero();
-    Q3.zero();
-    Q4.zero();
   }
 
   void setPID(double p, double i, double d) {
@@ -134,11 +160,11 @@ public:
     frc::SmartDashboard::PutNumber("D", Q1.turn_pid.GetD());
   }
 
-  void setPower(double power) {
-    Q1.setPower(power);
-    Q2.setPower(power);
-    Q3.setPower(power);
-    Q4.setPower(power);
+  //-- Chassis trajectory
+
+  void setTrajectory(frc::Trajectory t) {
+    target.begin = std::chrono::system_clock::now();
+    target.trajectory = t;
   }
 
   ~SwerveDrive() {}
