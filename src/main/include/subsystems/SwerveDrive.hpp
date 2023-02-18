@@ -57,13 +57,13 @@ public:
   SwerveDrive()
       : Q2(2, 3, 1, 0, "Q2", 180_deg), Q1(0, 1, 3, 2, "Q1", 180_deg),
         Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
-		
+        
         kinematics(frc::Translation2d(12_in, -9.68_in),
                    frc::Translation2d(12_in, 9.68_in),
                    frc::Translation2d(-12_in, 9.68_in),
                    frc::Translation2d(-12_in, -9.68_in)),
-		
-		// holonomic drive values are filler rn, adjust later
+        
+        // holonomic drive values are filler rn, adjust later
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
                   frc::ProfiledPIDController<units::radian>{
                       1, 0, 0,
@@ -83,13 +83,13 @@ public:
   // Swerve module state includes drive and swerve velocities
   void setSpeed(frc::ChassisSpeeds c) {
 
-	// Calculate target pod states from target state of chassis
+    // Calculate target pod states from target state of chassis
     auto states = kinematics.ToSwerveModuleStates(c);
 
-	// If one target speed exceeds limit, normalize all speeds by limit
+    // If one target speed exceeds limit, normalize all speeds by limit
     kinematics.DesaturateWheelSpeeds(&states, 2_mps);
 
-	// Set pods to target states
+    // Set pods to target states
     auto [s1, s2, s3, s4] = states;
     Q1.setState(s1);
     Q2.setState(s2);
@@ -139,9 +139,9 @@ public:
 
   void setTurnPID(double p, double i, double d) {
     Q1.setTurnPID(p,i,d);
-	Q2.setTurnPID(p,i,d);
-	Q3.setTurnPID(p,i,d);
-	Q4.setTurnPID(p,i,d);
+    Q2.setTurnPID(p,i,d);
+    Q3.setTurnPID(p,i,d);
+    Q4.setTurnPID(p,i,d);
 
     frc::SmartDashboard::PutNumber("P", Q1.turn_pid.GetP());
     frc::SmartDashboard::PutNumber("I", Q1.turn_pid.GetI());
@@ -152,8 +152,8 @@ public:
     double p = Q1.turn_pid.GetP() + dp;
     double i = Q1.turn_pid.GetI() + di;
     double d = Q1.turn_pid.GetD() + dd;
-	
-	setPID(p,i,d)
+    
+    setPID(p,i,d)
   }
 
   //-- Chassis trajectory

@@ -41,22 +41,22 @@ public:
   //-- Initialization
 
   SwervePod(int drive_id, int turn_id, 
-		    int encoder_channel_a, int encoder_channel_b, 
-			std::string_view name, 
-			radian_t rot = 0_rad)
+            int encoder_channel_a, int encoder_channel_b, 
+            std::string_view name, 
+            radian_t rot = 0_rad)
       : drive_m(drive_id), turn_m(turn_id),
         turn_e(encoder_channel_a, encoder_channel_b), 
-		turn_pid(1.0, 0.0, 0.0),
+        turn_pid(1.0, 0.0, 0.0),
         name(name) {
-	
-	// Turn encoder
+    
+    // Turn encoder
     turn_e.SetDistancePerPulse(2*pi * turnGearRatio);
 
-	// Turn PID
+    // Turn PID
     turn_pid.SetTolerance(0.0001);
     turn_pid.EnableContinuousInput(0, 2*pi);
 
-	// Names for logging
+    // Names for logging
     heading_name = this->name + " heading";
     setpoint_name = this->name + " setpoint";
     err_name = this->name + " error";
@@ -103,9 +103,9 @@ public:
   void enableTurnPID(bool b) { turn_pid_enabled = b; }
   
   void setTurnPID(double p, double i, double d) {
-	turn_pid.SetP(p);
-	turn_pid.SetI(i);
-	turn_pid.setD(d);
+    turn_pid.SetP(p);
+    turn_pid.SetI(i);
+    turn_pid.setD(d);
   }
 
   //-- Logging
@@ -114,19 +114,19 @@ public:
   void Periodic() override {
     using namespace ctre::phoenix::motorcontrol;
 
-	// Set PID output format as percentage
+    // Set PID output format as percentage
     auto turn_pid_out = turn_pid.Calculate(turn_e.GetDistance());
     if (turn_pid_enabled)
       turn_m.Set(ControlMode::PercentOutput, turn_pid_out);
-	
-	// Log stuff
+    
+    // Log stuff
     frc::SmartDashboard::PutNumber(pid_name, turn_pid_out);
     frc::SmartDashboard::PutNumber(heading_name,
                                    getHeading().value() * (180/pi));
     frc::SmartDashboard::PutNumber(setpoint_name,
                                    turn_pid.GetSetpoint() * (180/pi));
     frc::SmartDashboard::PutNumber(err_name, 
-								   turn_pid.GetPositionError() * (180/pi));
+                                   turn_pid.GetPositionError() * (180/pi));
   }
 
   // Pain
