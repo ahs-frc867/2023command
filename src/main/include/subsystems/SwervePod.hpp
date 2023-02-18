@@ -26,8 +26,8 @@
 
 namespace abval {
 
-// pg71 motor gear ratio, swerve pod gear ratio, encoder pulses per rotation
-constexpr double swerveGearRatio = ( 3179.0 / 226233.0 ) * ( 48.0 / 40.0 ) * ( 1.0 / 7.0 );
+// Turn motor PG71's gear ratio, swerve module's gear ratio, turn encoder's pulses per rotation
+constexpr double turnGearRatio = ( 3179.0 / 226233.0 ) * ( 48.0 / 40.0 ) * ( 1.0 / 7.0 );
 
 using std::numbers::pi;
 using units::radian_t;
@@ -40,14 +40,17 @@ public:
 
   //-- Initialization
 
-  SwervePod(int drive_id, int swerve_id, int encoder_channel_a,
-            int encoder_channel_b, std::string_view name, radian_t rot = 0_rad)
-      : drive(drive_id), turn_m(swerve_id),
-        turn_e(encoder_channel_a, encoder_channel_b), turn_pid(1.0, 0.0, 0.0),
+  SwervePod(int drive_id, int turn_id, 
+		    int encoder_channel_a, int encoder_channel_b, 
+			std::string_view name, 
+			radian_t rot = 0_rad)
+      : drive_m(drive_id), turn_m(turn_id),
+        turn_e(encoder_channel_a, encoder_channel_b), 
+		turn_pid(1.0, 0.0, 0.0),
         name(name) {
 	
 	// Turn encoder
-    turn_e.SetDistancePerPulse(2*pi * swerveGearRatio);
+    turn_e.SetDistancePerPulse(2*pi * turnGearRatio);
 
 	// Turn PID
     turn_pid.SetTolerance(0.0001);
@@ -65,7 +68,7 @@ public:
   void setState(frc::SwerveModuleState s) {
     using namespace ctre::phoenix::motorcontrol;
     s = frc::SwerveModuleState::Optimize(s, getHeading());
-    drive.Set(ControlMode::PercentOutput, s.speed.value());
+    drive_m.Set(ControlMode::PercentOutput, s.speed.value());
     if (s.speed != 0_mps)
       SetTurn(s.angle.Radians());
   }
@@ -74,7 +77,7 @@ public:
 
   void setPower(double percent) {
     using namespace ctre::phoenix::motorcontrol;
-    drive.Set(ControlMode::PercentOutput, percent);
+    drive_m.Set(ControlMode::PercentOutput, percent);
   }
 
   //-- Turn
@@ -97,8 +100,13 @@ public:
 
   //-- PID
 
-  frc2::PIDController turn_pid;
-  void enablePID(bool b) { enabled = b; }
+  void enableTurnPID(bool b) { turn_pid_enabled = b; }
+  
+  void setTurnPID(double p, double i, double d) {
+	turn_pid.SetP(p);
+	turn_pid.SetI(i);
+	turn_pid.setD(d);
+  }
 
   //-- Logging
 
@@ -107,12 +115,12 @@ public:
     using namespace ctre::phoenix::motorcontrol;
 
 	// Set PID output format as percentage
-    auto out = turn_pid.Calculate(turn_e.GetDistance());
-    if (enabled)
-      turn_m.Set(ControlMode::PercentOutput, out);
+    auto turn_pid_out = turn_pid.Calculate(turn_e.GetDistance());
+    if (turn_pid_enabled)
+      turn_m.Set(ControlMode::PercentOutput, turn_pid_out);
 	
 	// Log stuff
-    frc::SmartDashboard::PutNumber(err_name, out);
+    frc::SmartDashboard::PutNumber(pid_name, turn_pid_out);
     frc::SmartDashboard::PutNumber(heading_name,
                                    getHeading().value() * (180/pi));
     frc::SmartDashboard::PutNumber(setpoint_name,
@@ -137,27 +145,21 @@ public:
   }
 
 private:
-  TalonSRX drive;
-  TalonSRX turn_m;
-  frc::Encoder turn_e;
-  std::string name;
+
+  // Motors & encoders
+  TalonSRX drive_m; // Drive motor
+  TalonSRX turn_m; // Turn motor
+  frc::Encoder turn_e; // Turn encoder
+  frc2::PIDController turn_pid;
+
+  // Names for logging
+  std::string name; // Pod name
   std::string heading_name;
   std::string setpoint_name;
   std::string err_name;
   std::string out_name;
-  bool enabled = true;
 
-  // assumes normalized angles
-  radian_t calcOptimal(radian_t target) {
-    radian_t curr = getHeading();
-    auto distance = target - curr;
-    if (distance > 180_deg) {
-      distance = distance - 360_deg;
-    } else if (distance < -180_deg) {
-      distance = distance + 360_deg;
-    }
-    return distance;
-  }
+  bool turn_pid_enabled = true;
 };
 
 } // namespace abval

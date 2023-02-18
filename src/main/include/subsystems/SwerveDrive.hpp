@@ -130,34 +130,30 @@ public:
 
   //-- Pod PID
 
-  void enablePID(bool b) {
-    Q1.enablePID(b);
-    Q2.enablePID(b);
-    Q3.enablePID(b);
-    Q4.enablePID(b);
+  void enableTurnPID(bool b) {
+    Q1.enableTurnPID(b);
+    Q2.enableTurnPID(b);
+    Q3.enableTurnPID(b);
+    Q4.enableTurnPID(b);
   }
 
-  void setPID(double p, double i, double d) {
-    p += Q1.turn_pid.GetP();
-    i += Q1.turn_pid.GetI();
-    d += Q1.turn_pid.GetD();
-    Q1.turn_pid.SetP(p);
-    Q2.turn_pid.SetP(p);
-    Q3.turn_pid.SetP(p);
-    Q4.turn_pid.SetP(p);
-    
-    Q1.turn_pid.SetI(i);
-    Q2.turn_pid.SetI(i);
-    Q3.turn_pid.SetI(i);
-    Q4.turn_pid.SetI(i);
+  void setTurnPID(double p, double i, double d) {
+    Q1.setTurnPID(p,i,d);
+	Q2.setTurnPID(p,i,d);
+	Q3.setTurnPID(p,i,d);
+	Q4.setTurnPID(p,i,d);
 
-    Q1.turn_pid.SetD(d);
-    Q2.turn_pid.SetD(d);
-    Q3.turn_pid.SetD(d);
-    Q4.turn_pid.SetD(d);
     frc::SmartDashboard::PutNumber("P", Q1.turn_pid.GetP());
     frc::SmartDashboard::PutNumber("I", Q1.turn_pid.GetI());
     frc::SmartDashboard::PutNumber("D", Q1.turn_pid.GetD());
+  }
+
+  void incrementTurnPID(double dp, double di, double dd) {
+    double p = Q1.turn_pid.GetP() + dp;
+    double i = Q1.turn_pid.GetI() + di;
+    double d = Q1.turn_pid.GetD() + dd;
+	
+	setPID(p,i,d)
   }
 
   //-- Chassis trajectory
