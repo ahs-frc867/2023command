@@ -101,7 +101,11 @@ public:
   //-- PID
 
   void enableTurnPID(bool b) { turn_pid_enabled = b; }
-  
+
+  double getTurnP() { return turn_pid.GetP(); }
+  double getTurnI() { return turn_pid.GetI(); }
+  double getTurnD() { return turn_pid.getD(); }
+
   void setTurnPID(double p, double i, double d) {
     turn_pid.SetP(p);
     turn_pid.SetI(i);

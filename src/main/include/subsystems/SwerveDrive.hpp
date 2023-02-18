@@ -143,17 +143,17 @@ public:
     Q3.setTurnPID(p,i,d);
     Q4.setTurnPID(p,i,d);
 
-    frc::SmartDashboard::PutNumber("P", Q1.turn_pid.GetP());
-    frc::SmartDashboard::PutNumber("I", Q1.turn_pid.GetI());
-    frc::SmartDashboard::PutNumber("D", Q1.turn_pid.GetD());
+    frc::SmartDashboard::PutNumber("P", Q1.getTurnP());
+    frc::SmartDashboard::PutNumber("I", Q1.getTurnI());
+    frc::SmartDashboard::PutNumber("D", Q1.getTurnD());
   }
 
   void incrementTurnPID(double dp, double di, double dd) {
-    double p = Q1.turn_pid.GetP() + dp;
-    double i = Q1.turn_pid.GetI() + di;
-    double d = Q1.turn_pid.GetD() + dd;
+    double p = Q1.getTurnP() + dp;
+    double i = Q1.getTurnI() + di;
+    double d = Q1.getTurnD() + dd;
     
-    setPID(p,i,d)
+    setTurnPID(p,i,d)
   }
 
   //-- Chassis trajectory
