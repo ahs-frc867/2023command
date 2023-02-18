@@ -18,7 +18,6 @@
 #include <array>
 #include <chrono>
 
-#include "frc/smartdashboard/SmartDashboard.h"
 #include "subsystems/SwervePod.hpp"
 
 namespace abval {
@@ -54,11 +53,11 @@ class SwerveDrive : public frc2::SubsystemBase {
 public:
   // holonomic drive values are filler rn, adjust later
   SwerveDrive()
-      : Q1(0, 1, 3, 2, "Q1", 180_deg), Q2(2, 3, 1, 0, "Q2", 180_deg),
-        Q3(6, 7, 7, 6, "Q4"), Q4(4, 5, 5, 4, "Q3"),
-        kinematics(frc::Translation2d(12_in, 9.68_in),
+      : Q2(2, 3, 1, 0, "Q2", 180_deg), Q1(0, 1, 3, 2, "Q1", 180_deg),
+        Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
+        kinematics(frc::Translation2d(12_in, -9.68_in),
+                   frc::Translation2d(12_in, 9.68_in),
                    frc::Translation2d(-12_in, 9.68_in),
-                   frc::Translation2d(12_in, -9.68_in),
                    frc::Translation2d(-12_in, -9.68_in)),
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
                   frc::ProfiledPIDController<units::radian>{
@@ -82,6 +81,13 @@ public:
     Q4.setState(s4);
   }
 
+  void home() {
+    Q1.SetTurn(0_rad);
+    Q2.SetTurn(0_rad);
+    Q3.SetTurn(0_rad);
+    Q4.SetTurn(0_rad);
+  }
+
   void setTrajectory(frc::Trajectory t) {
     target.begin = std::chrono::system_clock::now();
     target.trajectory = t;
@@ -89,6 +95,20 @@ public:
 
   Headings getHeadings() const {
     return {Q1.getHeading(), Q2.getHeading(), Q3.getHeading(), Q4.getHeading()};
+  }
+
+  void enablePID(bool b) {
+    Q1.enablePID(b);
+    Q2.enablePID(b);
+    Q3.enablePID(b);
+    Q4.enablePID(b);
+  }
+
+  void zero() {
+    Q1.zero();
+    Q2.zero();
+    Q3.zero();
+    Q4.zero();
   }
 
   void setPID(double p, double i, double d) {
@@ -99,10 +119,12 @@ public:
     Q2.turn_pid.SetP(p);
     Q3.turn_pid.SetP(p);
     Q4.turn_pid.SetP(p);
+    
     Q1.turn_pid.SetI(i);
     Q2.turn_pid.SetI(i);
     Q3.turn_pid.SetI(i);
     Q4.turn_pid.SetI(i);
+
     Q1.turn_pid.SetD(d);
     Q2.turn_pid.SetD(d);
     Q3.turn_pid.SetD(d);
@@ -110,6 +132,13 @@ public:
     frc::SmartDashboard::PutNumber("P", Q1.turn_pid.GetP());
     frc::SmartDashboard::PutNumber("I", Q1.turn_pid.GetI());
     frc::SmartDashboard::PutNumber("D", Q1.turn_pid.GetD());
+  }
+
+  void setPower(double power) {
+    Q1.setPower(power);
+    Q2.setPower(power);
+    Q3.setPower(power);
+    Q4.setPower(power);
   }
 
   ~SwerveDrive() {}
