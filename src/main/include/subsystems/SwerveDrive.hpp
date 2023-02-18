@@ -36,11 +36,15 @@ class SwerveDrive : public frc2::SubsystemBase {
     frc::Rotation2d heading;
     std::chrono::time_point<std::chrono::system_clock> begin;
   } target;
-  bool onTrajectory = false;
+
+  bool on_trajectory = false;
+
+  auto pod_x = 12_in
+  auto pod_y = 9.6875_in;
 
   void Periodic() override {
     using units::meter_t, units::degree_t;
-    // if (onTrajectory) {
+    // if (on_trajectory) {
     //   units::second_t time = target.begin - std::chrono::system_clock::now();
     //   setSpeed(holonomic.Calculate(frc::Pose2d(meter_t(gyro.GetDisplacementX()),
     //                                            meter_t(gyro.GetDisplacementY()),
@@ -58,10 +62,10 @@ public:
       : Q2(2, 3, 1, 0, "Q2", 180_deg), Q1(0, 1, 3, 2, "Q1", 180_deg),
         Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
         
-        kinematics(frc::Translation2d(12_in, -9.68_in),
-                   frc::Translation2d(12_in, 9.68_in),
-                   frc::Translation2d(-12_in, 9.68_in),
-                   frc::Translation2d(-12_in, -9.68_in)),
+        kinematics(frc::Translation2d(+pod_x, -pod_y),
+                   frc::Translation2d(+pod_x, +pod_y),
+                   frc::Translation2d(-pod_x, +pod_y),
+                   frc::Translation2d(-pod_x, -pod_y)),
         
         // holonomic drive values are filler rn, adjust later
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
@@ -122,10 +126,10 @@ public:
   
   // Set pod rotations to 0
   void home() {
-    Q1.SetTurn(0_rad);
-    Q2.SetTurn(0_rad);
-    Q3.SetTurn(0_rad);
-    Q4.SetTurn(0_rad);
+    Q1.setTurn(0_rad);
+    Q2.setTurn(0_rad);
+    Q3.setTurn(0_rad);
+    Q4.setTurn(0_rad);
   }
 
   //-- Pod PID

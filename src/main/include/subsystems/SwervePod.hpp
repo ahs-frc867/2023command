@@ -27,7 +27,7 @@
 namespace abval {
 
 // Turn motor PG71's gear ratio, swerve module's gear ratio, turn encoder's pulses per rotation
-constexpr double turnGearRatio = ( 3179.0 / 226233.0 ) * ( 48.0 / 40.0 ) * ( 1.0 / 7.0 );
+constexpr double turn_gear_ratio = ( 3179.0 / 226233.0 ) * ( 48.0 / 40.0 ) * ( 1.0 / 7.0 );
 
 using std::numbers::pi;
 using units::radian_t;
@@ -50,7 +50,7 @@ public:
         name(name) {
     
     // Turn encoder
-    turn_e.SetDistancePerPulse(2*pi * turnGearRatio);
+    turn_e.SetDistancePerPulse(2*pi * turn_gear_ratio);
 
     // Turn PID
     turn_pid.SetTolerance(0.0001);
@@ -70,7 +70,7 @@ public:
     s = frc::SwerveModuleState::Optimize(s, getHeading());
     drive_m.Set(ControlMode::PercentOutput, s.speed.value());
     if (s.speed != 0_mps)
-      SetTurn(s.angle.Radians());
+      setTurn(s.angle.Radians());
   }
 
   //-- Drive
@@ -82,7 +82,7 @@ public:
 
   //-- Turn
 
-  void SetTurn(radian_t r) {
+  void setTurn(radian_t r) {
     using namespace ctre::phoenix::motorcontrol;
     turn_pid.Reset();
     r = units::math::fmod(r, 360_deg);
