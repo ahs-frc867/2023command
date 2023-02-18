@@ -18,15 +18,18 @@
 #include <units/length.h>
 #include <units/math.h>
 #include <wpi/mutex.h>
-
+#include <frc2/command/InstantCommand.h>
 
 #include "commands/Auto.hpp"
 #include "field.hpp"
+#include "frc2/command/RunCommand.h"
 #include "subsystems/SwerveDrive.hpp"
 #include "units/angular_velocity.h"
 #include "units/velocity.h"
 
-RobotContainer::RobotContainer() : gyro(frc::SPI::Port::kMXP), swerve(gyro) {
+RobotContainer::RobotContainer()
+    : //  gyro(frc::SPI::Port::kMXP),
+      swerve() {
   ConfigureBindings();
 }
 void RobotContainer::ConfigureBindings() {
@@ -49,6 +52,24 @@ void RobotContainer::ConfigureBindings() {
         frc::SmartDashboard::PutNumber("Q4h", headings[3].value());
       },
       {&swerve}));
+  joystick.Button(7).OnTrue(
+      frc2::InstantCommand([this]() { swerve.setPID(0.1, 0, 0); }, {&swerve})
+          .ToPtr());
+  joystick.Button(9).OnTrue(
+      frc2::InstantCommand([this]() { swerve.setPID(0, 0.1, 0); }, {&swerve})
+          .ToPtr());
+  joystick.Button(11).OnTrue(
+      frc2::InstantCommand([this]() { swerve.setPID(0, 0, 0.1); }, {&swerve})
+          .ToPtr());
+  joystick.Button(8).OnTrue(
+      frc2::InstantCommand([this]() { swerve.setPID(-0.1, 0, 0); }, {&swerve})
+          .ToPtr());
+  joystick.Button(10).OnTrue(
+      frc2::InstantCommand([this]() { swerve.setPID(0, -0.1, 0); }, {&swerve})
+          .ToPtr());
+  joystick.Button(12).OnTrue(
+      frc2::InstantCommand([this]() { swerve.setPID(0, 0, -0.1); }, {&swerve})
+          .ToPtr());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {

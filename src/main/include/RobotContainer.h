@@ -4,24 +4,26 @@
 
 #pragma once
 
+#include <AHRS.h>
+#include <frc/event/EventLoop.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/button/CommandJoystick.h>
-#include <frc/event/EventLoop.h>
-#include <AHRS.h>
 
 #include "Constants.hpp"
 #include "subsystems/SwerveDrive.hpp"
 
+constexpr int operator""_port(unsigned long long i) noexcept { return i; }
+
 class RobotContainer {
- public:
+public:
   RobotContainer();
 
   frc2::CommandPtr GetAutonomousCommand();
 
- private:
-  frc2::CommandJoystick joystick{abval::Constants::kDriverPort};
+private:
+  frc2::CommandJoystick joystick{0_port};
 
   void ConfigureBindings();
   abval::SwerveDrive swerve;
-  AHRS gyro;
+  // AHRS gyro;
 };
