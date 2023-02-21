@@ -19,15 +19,11 @@
 #include <chrono>
 
 #include "subsystems/SwervePod.hpp"
+#include "units/length.h"
 
 namespace abval {
 using Headings = std::array<units::radian_t, 4>;
 class SwerveDrive : public frc2::SubsystemBase {
-  SwervePod Q1;
-  SwervePod Q2;
-  SwervePod Q3;
-  SwervePod Q4;
-
   frc::SwerveDriveKinematics<4> kinematics;
   frc::HolonomicDriveController holonomic;
   // AHRS &gyro;
@@ -36,11 +32,14 @@ class SwerveDrive : public frc2::SubsystemBase {
     frc::Rotation2d heading;
     std::chrono::time_point<std::chrono::system_clock> begin;
   } target;
-  bool onTrajectory = false;
+
+  bool on_trajectory = false;
+
+  constexpr static units::length::meter_t pod_x = 12_in, pod_y = 9.6875_in;
 
   void Periodic() override {
     using units::meter_t, units::degree_t;
-    // if (onTrajectory) {
+    // if (on_trajectory) {
     //   units::second_t time = target.begin - std::chrono::system_clock::now();
     //   setSpeed(holonomic.Calculate(frc::Pose2d(meter_t(gyro.GetDisplacementX()),
     //                                            meter_t(gyro.GetDisplacementY()),
@@ -51,94 +50,122 @@ class SwerveDrive : public frc2::SubsystemBase {
   }
 
 public:
-  // holonomic drive values are filler rn, adjust later
+  SwervePod FL;
+  SwervePod FR;
+  SwervePod BL;
+  SwervePod BR;
+
+  //-- Initialization
+
   SwerveDrive()
-      : Q2(2, 3, 1, 0, "Q2", 180_deg), Q1(0, 1, 3, 2, "Q1", 180_deg),
-        Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
-        kinematics(frc::Translation2d(12_in, -9.68_in),
-                   frc::Translation2d(12_in, 9.68_in),
-                   frc::Translation2d(-12_in, 9.68_in),
-                   frc::Translation2d(-12_in, -9.68_in)),
+      : FL(2, 3, 3, 2, "FL"),
+        FR(0, 1, 1, 0, "FR"), 
+        BL(6, 7, 7, 6, "BL"),
+        BR(4, 5, 5, 4, "BR"),
+
+        kinematics(frc::Translation2d(+pod_x, +pod_y),
+                   frc::Translation2d(+pod_x, -pod_y),
+                   frc::Translation2d(-pod_x, +pod_y),
+                   frc::Translation2d(-pod_x, -pod_y)),
+
+        // holonomic drive values are filler rn, adjust later
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
                   frc::ProfiledPIDController<units::radian>{
                       1, 0, 0,
                       frc::TrapezoidProfile<units::radian>::Constraints{
                           6.28_rad_per_s, 3.14_rad_per_s / 1_s}}} //, gyro(g)
   {
-    Q1.reverseTurn(false);
-    Q2.reverseTurn(false);
-    Q3.reverseTurn(false);
-    Q4.reverseTurn(false);
+    FL.reverseTurn(false);
+    FR.reverseTurn(false);
+    BL.reverseTurn(false);
+    BR.reverseTurn(false);
   }
 
+  //-- General
+
+  // Set swerve modules' target states from chassis's target state
+  // Chassis state includes x, y, and angular velocities
+  // Swerve module state includes drive and swerve velocities
   void setSpeed(frc::ChassisSpeeds c) {
+
+    // Calculate target pod states from target state of chassis
     auto states = kinematics.ToSwerveModuleStates(c);
+
+    // If one target speed exceeds limit, normalize all speeds by limit
     kinematics.DesaturateWheelSpeeds(&states, 2_mps);
-    auto [s1, s2, s3, s4] = states;
-    Q1.setState(s1);
-    Q2.setState(s2);
-    Q3.setState(s3);
-    Q4.setState(s4);
+
+    // Set pods to target states
+    auto [sFL, sFR, sBL, sBR] = states;
+    FL.setState(sFL);
+    FR.setState(sFR);
+    BL.setState(sBL);
+    BR.setState(sBR);
   }
 
-  void home() {
-    Q1.SetTurn(0_rad);
-    Q2.SetTurn(0_rad);
-    Q3.SetTurn(0_rad);
-    Q4.SetTurn(0_rad);
+  //-- Pod drive
+
+  void setPower(double power) {
+    FL.setPower(power);
+    FR.setPower(power);
+    BL.setPower(power);
+    BR.setPower(power);
   }
+
+  //-- Pod turn
+
+  Headings getHeadings() const {
+    return {FL.getHeading(), FR.getHeading(), BL.getHeading(), BR.getHeading()};
+  }
+
+  // Reset zero point as pods' current rotations
+  void zero() {
+    FL.zero();
+    FR.zero();
+    BL.zero();
+    BR.zero();
+  }
+
+  // Set pod rotations to 0
+  void home() {
+    FL.setTurn(0_rad);
+    FR.setTurn(0_rad);
+    BL.setTurn(0_rad);
+    BR.setTurn(0_rad);
+  }
+
+  //-- Pod PID
+
+  void enableTurnPID(bool b) {
+    FL.enableTurnPID(b);
+    FR.enableTurnPID(b);
+    BL.enableTurnPID(b);
+    BR.enableTurnPID(b);
+  }
+
+  void setTurnPID(double p, double i, double d) {
+    FL.setTurnPID(p, i, d);
+    FR.setTurnPID(p, i, d);
+    BL.setTurnPID(p, i, d);
+    BR.setTurnPID(p, i, d);
+
+    frc::SmartDashboard::PutNumber("P", FR.getTurnP());
+    frc::SmartDashboard::PutNumber("I", FR.getTurnI());
+    frc::SmartDashboard::PutNumber("D", FR.getTurnD());
+  }
+
+  void incrementTurnPID(double dp, double di, double dd) {
+    double p = FR.getTurnP() + dp;
+    double i = FR.getTurnI() + di;
+    double d = FR.getTurnD() + dd;
+
+    setTurnPID(p, i, d);
+  }
+
+  //-- Chassis trajectory
 
   void setTrajectory(frc::Trajectory t) {
     target.begin = std::chrono::system_clock::now();
     target.trajectory = t;
-  }
-
-  Headings getHeadings() const {
-    return {Q1.getHeading(), Q2.getHeading(), Q3.getHeading(), Q4.getHeading()};
-  }
-
-  void enablePID(bool b) {
-    Q1.enablePID(b);
-    Q2.enablePID(b);
-    Q3.enablePID(b);
-    Q4.enablePID(b);
-  }
-
-  void zero() {
-    Q1.zero();
-    Q2.zero();
-    Q3.zero();
-    Q4.zero();
-  }
-
-  void setPID(double p, double i, double d) {
-    p += Q1.turn_pid.GetP();
-    i += Q1.turn_pid.GetI();
-    d += Q1.turn_pid.GetD();
-    Q1.turn_pid.SetP(p);
-    Q2.turn_pid.SetP(p);
-    Q3.turn_pid.SetP(p);
-    Q4.turn_pid.SetP(p);
-    
-    Q1.turn_pid.SetI(i);
-    Q2.turn_pid.SetI(i);
-    Q3.turn_pid.SetI(i);
-    Q4.turn_pid.SetI(i);
-
-    Q1.turn_pid.SetD(d);
-    Q2.turn_pid.SetD(d);
-    Q3.turn_pid.SetD(d);
-    Q4.turn_pid.SetD(d);
-    frc::SmartDashboard::PutNumber("P", Q1.turn_pid.GetP());
-    frc::SmartDashboard::PutNumber("I", Q1.turn_pid.GetI());
-    frc::SmartDashboard::PutNumber("D", Q1.turn_pid.GetD());
-  }
-
-  void setPower(double power) {
-    Q1.setPower(power);
-    Q2.setPower(power);
-    Q3.setPower(power);
-    Q4.setPower(power);
   }
 
   ~SwerveDrive() {}
