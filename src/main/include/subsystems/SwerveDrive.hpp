@@ -19,15 +19,11 @@
 #include <chrono>
 
 #include "subsystems/SwervePod.hpp"
+#include "units/length.h"
 
 namespace abval {
 using Headings = std::array<units::radian_t, 4>;
 class SwerveDrive : public frc2::SubsystemBase {
-  SwervePod Q1;
-  SwervePod Q2;
-  SwervePod Q3;
-  SwervePod Q4;
-
   frc::SwerveDriveKinematics<4> kinematics;
   frc::HolonomicDriveController holonomic;
   // AHRS &gyro;
@@ -39,8 +35,7 @@ class SwerveDrive : public frc2::SubsystemBase {
 
   bool on_trajectory = false;
 
-  auto pod_x = 12_in
-  auto pod_y = 9.6875_in;
+  constexpr static units::length::meter_t pod_x = 12_in, pod_y = 9.6875_in;
 
   void Periodic() override {
     using units::meter_t, units::degree_t;
@@ -55,18 +50,22 @@ class SwerveDrive : public frc2::SubsystemBase {
   }
 
 public:
-  
+  SwervePod Q1;
+  SwervePod Q2;
+  SwervePod Q3;
+  SwervePod Q4;
+
   //-- Initialization
 
   SwerveDrive()
-      : Q2(2, 3, 1, 0, "Q2", 180_deg), Q1(0, 1, 3, 2, "Q1", 180_deg),
-        Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
-        
+      : Q1(0, 1, 1, 0, "Q1"), Q2(2, 3, 3, 2, "Q2"), Q3(6, 7, 7, 6, "Q3"),
+        Q4(4, 5, 5, 4, "Q4"),
+
         kinematics(frc::Translation2d(+pod_x, -pod_y),
                    frc::Translation2d(+pod_x, +pod_y),
                    frc::Translation2d(-pod_x, +pod_y),
                    frc::Translation2d(-pod_x, -pod_y)),
-        
+
         // holonomic drive values are filler rn, adjust later
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
                   frc::ProfiledPIDController<units::radian>{
@@ -123,7 +122,7 @@ public:
     Q3.zero();
     Q4.zero();
   }
-  
+
   // Set pod rotations to 0
   void home() {
     Q1.setTurn(0_rad);
@@ -142,10 +141,10 @@ public:
   }
 
   void setTurnPID(double p, double i, double d) {
-    Q1.setTurnPID(p,i,d);
-    Q2.setTurnPID(p,i,d);
-    Q3.setTurnPID(p,i,d);
-    Q4.setTurnPID(p,i,d);
+    Q1.setTurnPID(p, i, d);
+    Q2.setTurnPID(p, i, d);
+    Q3.setTurnPID(p, i, d);
+    Q4.setTurnPID(p, i, d);
 
     frc::SmartDashboard::PutNumber("P", Q1.getTurnP());
     frc::SmartDashboard::PutNumber("I", Q1.getTurnI());
@@ -156,8 +155,8 @@ public:
     double p = Q1.getTurnP() + dp;
     double i = Q1.getTurnI() + di;
     double d = Q1.getTurnD() + dd;
-    
-    setTurnPID(p,i,d)
+
+    setTurnPID(p, i, d);
   }
 
   //-- Chassis trajectory

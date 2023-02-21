@@ -26,8 +26,10 @@
 
 namespace abval {
 
-// Turn motor PG71's gear ratio, swerve module's gear ratio, turn encoder's pulses per rotation
-constexpr double turn_gear_ratio = ( 3179.0 / 226233.0 ) * ( 48.0 / 40.0 ) * ( 1.0 / 7.0 );
+// Turn motor PG71's gear ratio, swerve module's gear ratio, turn encoder's
+// pulses per rotation
+constexpr double turn_gear_ratio =
+    (3179.0 / 226233.0) * (48.0 / 40.0) * (1.0 / 7.0);
 
 using std::numbers::pi;
 using units::radian_t;
@@ -37,38 +39,41 @@ using ctre::phoenix::motorcontrol::can::TalonSRX;
 class SwervePod : public frc2::SubsystemBase {
 
 public:
-
   //-- Initialization
 
-  SwervePod(int drive_id, int turn_id, 
-            int encoder_channel_a, int encoder_channel_b, 
-            std::string_view name, 
-            radian_t rot = 0_rad)
+  SwervePod(int drive_id, int turn_id, int encoder_channel_a,
+            int encoder_channel_b, std::string_view name)
       : drive_m(drive_id), turn_m(turn_id),
-        turn_e(encoder_channel_a, encoder_channel_b), 
-        turn_pid(1.0, 0.0, 0.0),
-        name(name) {
-    
+        turn_e(encoder_channel_a, encoder_channel_b), turn_pid(1.0, 0.0, 0.0) {
+    auto prefix = std::string(name); // Pod name
+
     // Turn encoder
-    turn_e.SetDistancePerPulse(2*pi * turn_gear_ratio);
+    turn_e.SetDistancePerPulse(2 * pi * turn_gear_ratio);
 
     // Turn PID
-    turn_pid.SetTolerance(0.0001);
-    turn_pid.EnableContinuousInput(0, 2*pi);
+    turn_pid.SetTolerance(units::convert<units::degree, units::radian>(0.1));
+    turn_pid.EnableContinuousInput(0, 2 * pi);
 
     // Names for logging
-    heading_name = this->name + " heading";
-    setpoint_name = this->name + " setpoint";
-    err_name = this->name + " error";
-    err_name = this->name + " output";
+    heading_name = prefix + " heading";
+    setpoint_name = prefix + " setpoint";
+    err_name = prefix + " error";
+    err_name = prefix + " output";
+    pid_name = prefix + " pid";
+    dir_name = prefix + " direction";
+    preopt_head_name = prefix + " preopt head";
+    preopt_dir_name = prefix + " preopt dir";
   }
 
   //-- General state
 
   void setState(frc::SwerveModuleState s) {
     using namespace ctre::phoenix::motorcontrol;
-    s = frc::SwerveModuleState::Optimize(s, getHeading());
+    frc::SmartDashboard::PutNumber(preopt_head_name, s.angle.Degrees().value());
+    frc::SmartDashboard::PutNumber(preopt_dir_name, s.speed.value());
+    s = frc::SwerveModuleState::Optimize(s, radian_t(turn_e.GetDistance()));
     drive_m.Set(ControlMode::PercentOutput, s.speed.value());
+    frc::SmartDashboard::PutNumber(dir_name, s.speed.value());
     if (s.speed != 0_mps)
       setTurn(s.angle.Radians());
   }
@@ -85,7 +90,7 @@ public:
   void setTurn(radian_t r) {
     using namespace ctre::phoenix::motorcontrol;
     turn_pid.Reset();
-    r = units::math::fmod(r, 360_deg);
+    //r = units::math::fmod(r, 360_deg);
     turn_pid.SetSetpoint(r.value());
   }
 
@@ -104,12 +109,12 @@ public:
 
   double getTurnP() { return turn_pid.GetP(); }
   double getTurnI() { return turn_pid.GetI(); }
-  double getTurnD() { return turn_pid.getD(); }
+  double getTurnD() { return turn_pid.GetD(); }
 
   void setTurnPID(double p, double i, double d) {
     turn_pid.SetP(p);
     turn_pid.SetI(i);
-    turn_pid.setD(d);
+    turn_pid.SetD(d);
   }
 
   //-- Logging
@@ -122,15 +127,15 @@ public:
     auto turn_pid_out = turn_pid.Calculate(turn_e.GetDistance());
     if (turn_pid_enabled)
       turn_m.Set(ControlMode::PercentOutput, turn_pid_out);
-    
+
     // Log stuff
     frc::SmartDashboard::PutNumber(pid_name, turn_pid_out);
     frc::SmartDashboard::PutNumber(heading_name,
-                                   getHeading().value() * (180/pi));
+                                   getHeading().value() * (180 / pi));
     frc::SmartDashboard::PutNumber(setpoint_name,
-                                   turn_pid.GetSetpoint() * (180/pi));
-    frc::SmartDashboard::PutNumber(err_name, 
-                                   turn_pid.GetPositionError() * (180/pi));
+                                   turn_pid.GetSetpoint() * (180 / pi));
+    frc::SmartDashboard::PutNumber(err_name,
+                                   turn_pid.GetPositionError() * (180 / pi));
   }
 
   // Pain
@@ -149,19 +154,21 @@ public:
   }
 
 private:
-
   // Motors & encoders
-  TalonSRX drive_m; // Drive motor
-  TalonSRX turn_m; // Turn motor
+  TalonSRX drive_m;    // Drive motor
+  TalonSRX turn_m;     // Turn motor
   frc::Encoder turn_e; // Turn encoder
   frc2::PIDController turn_pid;
 
   // Names for logging
-  std::string name; // Pod name
   std::string heading_name;
   std::string setpoint_name;
   std::string err_name;
   std::string out_name;
+  std::string pid_name;
+  std::string dir_name;
+  std::string preopt_head_name;
+  std::string preopt_dir_name;
 
   bool turn_pid_enabled = true;
 };
