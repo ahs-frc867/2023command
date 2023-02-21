@@ -58,13 +58,15 @@ public:
   //-- Initialization
 
   SwerveDrive()
-      : Q1(0, 1, 1, 0, "Q1"), Q2(2, 3, 3, 2, "Q2"), Q3(6, 7, 7, 6, "Q3"),
+      : Q1(0, 1, 1, 0, "Q1"), 
+	    Q2(2, 3, 3, 2, "Q2"),
+	    Q3(6, 7, 7, 6, "Q3"),
         Q4(4, 5, 5, 4, "Q4"),
 
-        kinematics(frc::Translation2d(+pod_x, -pod_y),
-                   frc::Translation2d(+pod_x, +pod_y),
-                   frc::Translation2d(-pod_x, +pod_y),
-                   frc::Translation2d(-pod_x, -pod_y)),
+        kinematics(frc::Translation2d(+pod_y, -pod_x),
+                   frc::Translation2d(+pod_y, +pod_x),
+                   frc::Translation2d(-pod_y, +pod_x),
+                   frc::Translation2d(-pod_y, -pod_x)),
 
         // holonomic drive values are filler rn, adjust later
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
