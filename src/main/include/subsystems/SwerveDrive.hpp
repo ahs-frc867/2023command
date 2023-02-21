@@ -50,23 +50,23 @@ class SwerveDrive : public frc2::SubsystemBase {
   }
 
 public:
-  SwervePod Q1;
-  SwervePod Q2;
-  SwervePod Q3;
-  SwervePod Q4;
+  SwervePod FL;
+  SwervePod FR;
+  SwervePod BL;
+  SwervePod BR;
 
   //-- Initialization
 
   SwerveDrive()
-      : Q1(0, 1, 1, 0, "Q1"), 
-	    Q2(2, 3, 3, 2, "Q2"),
-	    Q3(6, 7, 7, 6, "Q3"),
-        Q4(4, 5, 5, 4, "Q4"),
+      : FL(2, 3, 3, 2, "FL"),
+        FR(0, 1, 1, 0, "FR"), 
+	BL(6, 7, 7, 6, "BL"),
+        BR(4, 5, 5, 4, "BR"),
 
-        kinematics(frc::Translation2d(+pod_y, -pod_x),
-                   frc::Translation2d(+pod_y, +pod_x),
-                   frc::Translation2d(-pod_y, +pod_x),
-                   frc::Translation2d(-pod_y, -pod_x)),
+        kinematics(frc::Translation2d(+pod_x, +pod_y),
+                   frc::Translation2d(+pod_x, -pod_y),
+                   frc::Translation2d(-pod_x, +pod_y),
+                   frc::Translation2d(-pod_x, -pod_y)),
 
         // holonomic drive values are filler rn, adjust later
         holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
@@ -75,10 +75,10 @@ public:
                       frc::TrapezoidProfile<units::radian>::Constraints{
                           6.28_rad_per_s, 3.14_rad_per_s / 1_s}}} //, gyro(g)
   {
-    Q1.reverseTurn(false);
-    Q2.reverseTurn(false);
-    Q3.reverseTurn(false);
-    Q4.reverseTurn(false);
+    FL.reverseTurn(false);
+    FR.reverseTurn(false);
+    BL.reverseTurn(false);
+    BR.reverseTurn(false);
   }
 
   //-- General
@@ -95,68 +95,68 @@ public:
     kinematics.DesaturateWheelSpeeds(&states, 2_mps);
 
     // Set pods to target states
-    auto [s1, s2, s3, s4] = states;
-    Q1.setState(s1);
-    Q2.setState(s2);
-    Q3.setState(s3);
-    Q4.setState(s4);
+    auto [sFL, sFR, sBL, sBR] = states;
+    FL.setState(sFL);
+    FR.setState(sFR);
+    BL.setState(sBL);
+    BR.setState(sBR);
   }
 
   //-- Pod drive
 
   void setPower(double power) {
-    Q1.setPower(power);
-    Q2.setPower(power);
-    Q3.setPower(power);
-    Q4.setPower(power);
+    FL.setPower(power);
+    FR.setPower(power);
+    BL.setPower(power);
+    BR.setPower(power);
   }
 
   //-- Pod turn
 
   Headings getHeadings() const {
-    return {Q1.getHeading(), Q2.getHeading(), Q3.getHeading(), Q4.getHeading()};
+    return {FL.getHeading(), FR.getHeading(), BL.getHeading(), BR.getHeading()};
   }
 
   // Reset zero point as pods' current rotations
   void zero() {
-    Q1.zero();
-    Q2.zero();
-    Q3.zero();
-    Q4.zero();
+    FL.zero();
+    FR.zero();
+    BL.zero();
+    BR.zero();
   }
 
   // Set pod rotations to 0
   void home() {
-    Q1.setTurn(0_rad);
-    Q2.setTurn(0_rad);
-    Q3.setTurn(0_rad);
-    Q4.setTurn(0_rad);
+    FL.setTurn(0_rad);
+    FR.setTurn(0_rad);
+    BL.setTurn(0_rad);
+    BR.setTurn(0_rad);
   }
 
   //-- Pod PID
 
   void enableTurnPID(bool b) {
-    Q1.enableTurnPID(b);
-    Q2.enableTurnPID(b);
-    Q3.enableTurnPID(b);
-    Q4.enableTurnPID(b);
+    FL.enableTurnPID(b);
+    FR.enableTurnPID(b);
+    BL.enableTurnPID(b);
+    BR.enableTurnPID(b);
   }
 
   void setTurnPID(double p, double i, double d) {
-    Q1.setTurnPID(p, i, d);
-    Q2.setTurnPID(p, i, d);
-    Q3.setTurnPID(p, i, d);
-    Q4.setTurnPID(p, i, d);
+    FL.setTurnPID(p, i, d);
+    FR.setTurnPID(p, i, d);
+    BL.setTurnPID(p, i, d);
+    BR.setTurnPID(p, i, d);
 
-    frc::SmartDashboard::PutNumber("P", Q1.getTurnP());
-    frc::SmartDashboard::PutNumber("I", Q1.getTurnI());
-    frc::SmartDashboard::PutNumber("D", Q1.getTurnD());
+    frc::SmartDashboard::PutNumber("P", FR.getTurnP());
+    frc::SmartDashboard::PutNumber("I", FR.getTurnI());
+    frc::SmartDashboard::PutNumber("D", FR.getTurnD());
   }
 
   void incrementTurnPID(double dp, double di, double dd) {
-    double p = Q1.getTurnP() + dp;
-    double i = Q1.getTurnI() + di;
-    double d = Q1.getTurnD() + dd;
+    double p = FR.getTurnP() + dp;
+    double i = FR.getTurnI() + di;
+    double d = FR.getTurnD() + dd;
 
     setTurnPID(p, i, d);
   }
