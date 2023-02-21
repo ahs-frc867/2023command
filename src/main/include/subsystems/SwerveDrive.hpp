@@ -60,7 +60,7 @@ public:
   SwerveDrive()
       : FL(2, 3, 3, 2, "FL"),
         FR(0, 1, 1, 0, "FR"), 
-	BL(6, 7, 7, 6, "BL"),
+	      BL(6, 7, 7, 6, "BL"),
         BR(4, 5, 5, 4, "BR"),
 
         kinematics(frc::Translation2d(+pod_x, +pod_y),
