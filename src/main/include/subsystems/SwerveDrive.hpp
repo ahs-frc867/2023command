@@ -30,30 +30,10 @@ class SwerveDrive : public frc2::SubsystemBase {
 
   frc::SwerveDriveKinematics<4> kinematics;
   frc::HolonomicDriveController holonomic;
-  // AHRS &gyro;
-  struct {
-    frc::Trajectory trajectory;
-    frc::Rotation2d heading;
-    std::chrono::time_point<std::chrono::system_clock> begin;
-  } target;
-  bool onTrajectory = false;
-
-  void Periodic() override {
-    using units::meter_t, units::degree_t;
-    // if (onTrajectory) {
-    //   units::second_t time = target.begin - std::chrono::system_clock::now();
-    //   setSpeed(holonomic.Calculate(frc::Pose2d(meter_t(gyro.GetDisplacementX()),
-    //                                            meter_t(gyro.GetDisplacementY()),
-    //                                            degree_t(gyro.GetAngle())),
-    //                                target.trajectory.Sample(time),
-    //                                target.heading));
-    // }
-  }
-
 public:
   // holonomic drive values are filler rn, adjust later
   SwerveDrive()
-      : Q2(2, 3, 1, 0, "Q2", 180_deg), Q1(0, 1, 3, 2, "Q1", 180_deg),
+      : Q2(2, 3, 3, 2, "Q2", 180_deg), Q1(0, 1, 1, 0, "Q1", 180_deg),
         Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
         kinematics(frc::Translation2d(12_in, -9.68_in),
                    frc::Translation2d(12_in, 9.68_in),
@@ -86,11 +66,6 @@ public:
     Q2.SetTurn(0_rad);
     Q3.SetTurn(0_rad);
     Q4.SetTurn(0_rad);
-  }
-
-  void setTrajectory(frc::Trajectory t) {
-    target.begin = std::chrono::system_clock::now();
-    target.trajectory = t;
   }
 
   Headings getHeadings() const {

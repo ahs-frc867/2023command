@@ -8,6 +8,7 @@
 #include <frc/event/EventLoop.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/button/CommandJoystick.h>
+#include <pathplanner/lib/auto/SwerveAutoBuilder.h>
 
 #include "Constants.hpp"
 #include "subsystems/SwerveDrive.hpp"
@@ -25,5 +26,8 @@ private:
 
   void ConfigureBindings();
   abval::SwerveDrive swerve;
-  // AHRS gyro;
+  AHRS gyro;
+  pathplanner::SwerveAutoBuilder autoBuilder;
+  frc::Pose2d basePose = {};
+  frc::Pose2d getPose();
 };

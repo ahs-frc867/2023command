@@ -14,6 +14,7 @@
 #include <frc2/command/CommandScheduler.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/button/Trigger.h>
+#include <pathplanner/lib/PathPlanner.h>
 #include <units/angle.h>
 #include <units/length.h>
 #include <units/math.h>
@@ -26,11 +27,33 @@
 #include "units/angular_velocity.h"
 #include "units/velocity.h"
 
+namespace pp = pathplanner;
+
+const static std::unordered_map<std::string, std::shared_ptr<frc2::Command>>
+    eventMap;
+
 RobotContainer::RobotContainer()
-    : //  gyro(frc::SPI::Port::kMXP),
-      swerve() {
+    : gyro(frc::SPI::Port::kMXP),
+      autoBuilder([this]() { return getPose(); },
+                  [this](frc::Pose2d p) {
+                    gyro.Reset();
+                    basePose = p;
+                  },
+                  pp::PIDConstants(5.0, 0.0, 0.0),
+                  pp::PIDConstants(0.5, 0.0, 0.0),
+                  [this](frc::ChassisSpeeds s) { swerve.setSpeed(s); },
+                  eventMap, {&swerve}) {
   ConfigureBindings();
 }
+
+frc::Pose2d RobotContainer::getPose() {
+  using units::length::meter_t;
+  return frc::Pose2d(frc::Translation2d(meter_t(gyro.GetDisplacementX()),
+                                        meter_t(gyro.GetDisplacementY())),
+                     gyro.GetRotation2d())
+      .RelativeTo(basePose);
+}
+
 void RobotContainer::ConfigureBindings() {
   using namespace units;
   swerve.SetDefaultCommand(frc2::RunCommand(
@@ -41,35 +64,18 @@ void RobotContainer::ConfigureBindings() {
                                .omega = radians_per_second_t(joystick.GetZ())},
             90_deg);
         if (units::math::hypot(speed.vx, speed.vy) > .1_mps ||
-            speed.omega > .1_rad_per_s)
+            units::math::abs(speed.omega) > .1_rad_per_s)
           swerve.setSpeed(speed);
         else
           swerve.setSpeed(frc::ChassisSpeeds{});
       },
       {&swerve}));
-
-  static bool b = false;
-  joystick.Button(3).OnTrue(
-      frc2::InstantCommand(
-          [&, this]() {
-            swerve.enablePID(b);
-            b = !b;
-          },
-          {&swerve})
-          .ToPtr());
-  joystick.Button(4).OnTrue(
-      frc2::InstantCommand([this]() { swerve.zero(); }, {&swerve}).ToPtr());
   joystick.Button(7).OnTrue(
       frc2::InstantCommand([this]() { swerve.home(); }, {&swerve}).ToPtr());
-  joystick.Button(11)
-      .OnTrue(
-          frc2::RunCommand([this]() { swerve.setPower(0.1); }, {&swerve})
-              .ToPtr())
-      .OnFalse(
-          frc2::InstantCommand([this]() { swerve.setPower(0.0); }, {&swerve})
-              .ToPtr());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  return frc2::RunCommand([]() {}, {}).ToPtr();
+  pp::PathPlannerTrajectory bluepath = pp::PathPlanner::loadPath(
+      "bluepath", pp::PathConstraints(4_mps, 3_mps_sq));
+  return autoBuilder.followPath(bluepath);
 }

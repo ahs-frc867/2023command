@@ -73,7 +73,7 @@ public:
   void setState(frc::SwerveModuleState s) {
     using namespace ctre::phoenix::motorcontrol;
     s = frc::SwerveModuleState::Optimize(s, getHeading());
-    drive.Set(ControlMode::PercentOutput, s.speed.value());
+    drive.Set(ControlMode::Current, s.speed.value());
     if (s.speed != 0_mps)
       SetTurn(s.angle.Radians());
   }
