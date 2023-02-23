@@ -1,8 +1,6 @@
 #pragma once
 
 #include <AHRS.h>
-#include <frc/controller/HolonomicDriveController.h>
-#include <frc/controller/ProfiledPIDController.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Rotation2d.h>
 #include <frc/geometry/Transform2d.h>
@@ -23,97 +21,50 @@
 namespace abval {
 using Headings = std::array<units::radian_t, 4>;
 class SwerveDrive : public frc2::SubsystemBase {
-  SwervePod Q1;
-  SwervePod Q2;
-  SwervePod Q3;
-  SwervePod Q4;
-
+  std::array<SwervePod, 4> pods;
   frc::SwerveDriveKinematics<4> kinematics;
-  frc::HolonomicDriveController holonomic;
+
 public:
   // holonomic drive values are filler rn, adjust later
   SwerveDrive()
-      : Q2(2, 3, 3, 2, "Q2", 180_deg), Q1(0, 1, 1, 0, "Q1", 180_deg),
-        Q4(4, 5, 5, 4, "Q4"), Q3(6, 7, 7, 6, "Q3"),
+      : pods{SwervePod(0, 1, 1, 0, "Q1"), SwervePod(2, 3, 3, 2, "Q2"),
+             SwervePod(6, 7, 7, 6, "Q3"), SwervePod(4, 5, 5, 4, "Q4")},
         kinematics(frc::Translation2d(12_in, -9.68_in),
                    frc::Translation2d(12_in, 9.68_in),
                    frc::Translation2d(-12_in, 9.68_in),
-                   frc::Translation2d(-12_in, -9.68_in)),
-        holonomic{frc2::PIDController{1, 0, 0}, frc2::PIDController{1, 0, 0},
-                  frc::ProfiledPIDController<units::radian>{
-                      1, 0, 0,
-                      frc::TrapezoidProfile<units::radian>::Constraints{
-                          6.28_rad_per_s, 3.14_rad_per_s / 1_s}}} //, gyro(g)
-  {
-    Q1.reverseTurn(false);
-    Q2.reverseTurn(false);
-    Q3.reverseTurn(false);
-    Q4.reverseTurn(false);
-  }
+                   frc::Translation2d(-12_in, -9.68_in)) {}
 
   void setSpeed(frc::ChassisSpeeds c) {
     auto states = kinematics.ToSwerveModuleStates(c);
     kinematics.DesaturateWheelSpeeds(&states, 2_mps);
-    auto [s1, s2, s3, s4] = states;
-    Q1.setState(s1);
-    Q2.setState(s2);
-    Q3.setState(s3);
-    Q4.setState(s4);
+    for (int i = 0; i != 4; i++) {
+      pods[i].setState(states[i]);
+    }
   }
 
   void home() {
-    Q1.SetTurn(0_rad);
-    Q2.SetTurn(0_rad);
-    Q3.SetTurn(0_rad);
-    Q4.SetTurn(0_rad);
+    for (auto &pod : pods) {
+      pod.SetTurn(0_rad);
+    }
   }
 
   Headings getHeadings() const {
-    return {Q1.getHeading(), Q2.getHeading(), Q3.getHeading(), Q4.getHeading()};
-  }
-
-  void enablePID(bool b) {
-    Q1.enablePID(b);
-    Q2.enablePID(b);
-    Q3.enablePID(b);
-    Q4.enablePID(b);
-  }
-
-  void zero() {
-    Q1.zero();
-    Q2.zero();
-    Q3.zero();
-    Q4.zero();
+    return {pods[0].getHeading(), pods[1].getHeading(), pods[2].getHeading(),
+            pods[3].getHeading()};
   }
 
   void setPID(double p, double i, double d) {
-    p += Q1.turn_pid.GetP();
-    i += Q1.turn_pid.GetI();
-    d += Q1.turn_pid.GetD();
-    Q1.turn_pid.SetP(p);
-    Q2.turn_pid.SetP(p);
-    Q3.turn_pid.SetP(p);
-    Q4.turn_pid.SetP(p);
-    
-    Q1.turn_pid.SetI(i);
-    Q2.turn_pid.SetI(i);
-    Q3.turn_pid.SetI(i);
-    Q4.turn_pid.SetI(i);
-
-    Q1.turn_pid.SetD(d);
-    Q2.turn_pid.SetD(d);
-    Q3.turn_pid.SetD(d);
-    Q4.turn_pid.SetD(d);
-    frc::SmartDashboard::PutNumber("P", Q1.turn_pid.GetP());
-    frc::SmartDashboard::PutNumber("I", Q1.turn_pid.GetI());
-    frc::SmartDashboard::PutNumber("D", Q1.turn_pid.GetD());
-  }
-
-  void setPower(double power) {
-    Q1.setPower(power);
-    Q2.setPower(power);
-    Q3.setPower(power);
-    Q4.setPower(power);
+    p += pods[0].turn_pid.GetP();
+    i += pods[0].turn_pid.GetI();
+    d += pods[0].turn_pid.GetD();
+    for(auto& pod : pods){
+      pod.turn_pid.SetP(p);
+      pod.turn_pid.SetI(i);
+      pod.turn_pid.SetD(d);
+    }
+    frc::SmartDashboard::PutNumber("P", pods[0].turn_pid.GetP());
+    frc::SmartDashboard::PutNumber("I", pods[0].turn_pid.GetI());
+    frc::SmartDashboard::PutNumber("D", pods[0].turn_pid.GetD());
   }
 
   ~SwerveDrive() {}
