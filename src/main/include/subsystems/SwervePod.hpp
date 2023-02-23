@@ -31,15 +31,14 @@ constexpr double swerveGearRatio = 3179.0 / 226233.0 * 48.0 / 40.0 / 7.0;
 using ctre::phoenix::motorcontrol::can::TalonSRX;
 using std::numbers::pi;
 using units::radian_t;
+namespace umath = units::math;
 
 class SwervePod : public frc2::SubsystemBase {
- public:
+public:
   SwervePod(int drive_id, int swerve_id, int encoder_channel_a,
             int encoder_channel_b, std::string_view name, radian_t rot = 0_rad)
-      : drive(drive_id),
-        turn_m(swerve_id),
-        turn_e(encoder_channel_a, encoder_channel_b),
-        turn_pid(1.0, 0.0, 0.0) {
+      : drive(drive_id), turn_m(swerve_id),
+        turn_e(encoder_channel_a, encoder_channel_b), turn_pid(1.0, 0.0, 0.0) {
     turn_e.SetDistancePerPulse(pi * 2.0 * swerveGearRatio);
     turn_pid.SetTolerance(0.0001);
     auto prefix = std::string(name);
@@ -75,24 +74,32 @@ class SwervePod : public frc2::SubsystemBase {
 
   void setState(frc::SwerveModuleState s) {
     using namespace ctre::phoenix::motorcontrol;
-    s = frc::SwerveModuleState::Optimize(s, getHeading());
-    drive.Set(ControlMode::Current, s.speed.value());
-    if (s.speed != 0_mps) SetTurn(s.angle.Radians());
+    radian_t fwd = calcOptimal(s.angle.Radians());
+    radian_t back = calcOptimal(s.angle.Radians() + 180_deg);
+    if (umath::abs(fwd) < umath::abs(back)) {
+      SetTurn(fwd + radian_t(turn_e.GetDistance()));
+      drive.Set(ControlMode::PercentOutput, s.speed.value());
+    } else {
+      SetTurn(back + radian_t(turn_e.GetDistance()));
+      drive.Set(ControlMode::PercentOutput, -s.speed.value());
+    }
   }
 
   void enablePID(bool b) { enabled = b; }
 
   void Periodic() override {
+    using namespace units;
     using namespace ctre::phoenix::motorcontrol;
     auto out = turn_pid.Calculate(turn_e.GetDistance());
-    if (enabled) turn_m.Set(ControlMode::PercentOutput, out);
+    if (enabled)
+      turn_m.Set(ControlMode::PercentOutput, out);
     frc::SmartDashboard::PutNumber(err_name, out);
     frc::SmartDashboard::PutNumber(heading_name,
-                                   getHeading().value() / (2 * pi) * 360);
-    frc::SmartDashboard::PutNumber(setpoint_name,
-                                   turn_pid.GetSetpoint() / (2 * pi) * 360);
+                                   getHeading().convert<degrees>().value());
     frc::SmartDashboard::PutNumber(
-        err_name, turn_pid.GetPositionError() / (2 * pi) * 360);
+        setpoint_name, convert<radian, degrees>(turn_pid.GetSetpoint()));
+    frc::SmartDashboard::PutNumber(
+        err_name, convert<radian, degrees>(turn_pid.GetPositionError()));
   }
 
   void setPower(double percent) {
@@ -109,7 +116,7 @@ class SwervePod : public frc2::SubsystemBase {
 
   frc2::PIDController turn_pid;
 
- private:
+private:
   TalonSRX drive;
   TalonSRX turn_m;
   frc::Encoder turn_e;
@@ -132,4 +139,4 @@ class SwervePod : public frc2::SubsystemBase {
   }
 };
 
-}  // namespace abval
+} // namespace abval
