@@ -46,6 +46,7 @@ public:
     setpoint_name = prefix + " setpoint";
     err_name = prefix + " error";
     err_name = prefix + " output";
+    turn_pid.EnableContinuousInput(0, 2 * pi);
   }
 
   void InitSendable(wpi::SendableBuilder &builder) override {

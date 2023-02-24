@@ -21,10 +21,10 @@
 namespace abval {
 using Headings = std::array<units::radian_t, 4>;
 class SwerveDrive : public frc2::SubsystemBase {
-  std::array<SwervePod, 4> pods;
   frc::SwerveDriveKinematics<4> kinematics;
 
 public:
+  std::array<SwervePod, 4> pods;
   // holonomic drive values are filler rn, adjust later
   SwerveDrive()
       : pods{SwervePod(0, 1, 1, 0, "Q1"), SwervePod(2, 3, 3, 2, "Q2"),
