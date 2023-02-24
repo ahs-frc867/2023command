@@ -127,12 +127,14 @@ private:
   bool enabled = true;
 
   // assumes normalized angles
+  //angleDiff current to target
   radian_t calcOptimal(radian_t target) {
     radian_t curr = getHeading();
     auto distance = target - curr;
-    if (distance > 180_deg) {
+    while (distance >= 180_deg) {
       distance = distance - 360_deg;
-    } else if (distance < -180_deg) {
+    }
+    while (distance < -180_deg) {
       distance = distance + 360_deg;
     }
     return distance;
