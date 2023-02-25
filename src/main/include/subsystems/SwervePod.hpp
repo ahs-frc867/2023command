@@ -65,7 +65,7 @@ public:
   void SetTurn(radian_t r) {
     using namespace ctre::phoenix::motorcontrol;
     turn_pid.Reset();
-    r = units::math::fmod(r, 360_deg);
+    // r = units::math::fmod(r, 360_deg);
     turn_pid.SetSetpoint(r.value());
   }
 
@@ -129,9 +129,10 @@ private:
   radian_t calcOptimal(radian_t target) {
     radian_t curr = getHeading();
     auto distance = target - curr;
-    if (distance > 180_deg) {
+    while (distance >= 180_deg) {
       distance = distance - 360_deg;
-    } else if (distance < -180_deg) {
+    } 
+    while (distance < -180_deg) {
       distance = distance + 360_deg;
     }
     return distance;

@@ -28,7 +28,7 @@ public:
   // holonomic drive values are filler rn, adjust later
   SwerveDrive()
       : pods{SwervePod(0, 1, 1, 0, "Q1"), SwervePod(2, 3, 3, 2, "Q2"),
-             SwervePod(6, 7, 7, 6, "Q3"), SwervePod(4, 5, 5, 4, "Q4")},
+             SwervePod(4, 5, 5, 4, "Q3"), SwervePod(6, 7, 7, 6, "Q4"),},
         kinematics(frc::Translation2d(12_in, -9.68_in),
                    frc::Translation2d(12_in, 9.68_in),
                    frc::Translation2d(-12_in, 9.68_in),

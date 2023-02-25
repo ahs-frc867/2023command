@@ -59,9 +59,9 @@ void RobotContainer::ConfigureBindings() {
   swerve.SetDefaultCommand(frc2::RunCommand(
       [this]() {
         auto speed = frc::ChassisSpeeds::FromFieldRelativeSpeeds(
-            frc::ChassisSpeeds{.vx = -meters_per_second_t(joystick.GetX()),
-                               .vy = meters_per_second_t(joystick.GetY()),
-                               .omega = radians_per_second_t(joystick.GetZ())},
+            frc::ChassisSpeeds{.vx = -meters_per_second_t(-joystick.GetX()),
+                               .vy = meters_per_second_t(-joystick.GetY()),
+                               .omega = radians_per_second_t(-joystick.GetZ())},
             90_deg);
         if (units::math::hypot(speed.vx, speed.vy) > .1_mps ||
             units::math::abs(speed.omega) > .1_rad_per_s)
