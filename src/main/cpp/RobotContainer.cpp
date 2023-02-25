@@ -56,34 +56,22 @@ frc::Pose2d RobotContainer::getPose() {
 
 void RobotContainer::ConfigureBindings() {
   using namespace units;
-  static int mode = 0;
   swerve.SetDefaultCommand(frc2::RunCommand(
       [this]() {
-        using namespace units::math;
         auto speed = frc::ChassisSpeeds::FromFieldRelativeSpeeds(
             frc::ChassisSpeeds{.vx = -meters_per_second_t(joystick.GetX()),
                                .vy = meters_per_second_t(joystick.GetY()),
                                .omega = radians_per_second_t(joystick.GetZ())},
             90_deg);
-        if (hypot(speed.vx, speed.vy) > .1_mps ||
-            abs(speed.omega) > .1_rad_per_s)
-          swerve.pods[mode].setState(
-              frc::SwerveModuleState{.speed = hypot(speed.vx, speed.vy),
-                                     .angle = atan2(speed.vy, speed.vx)});
+        if (units::math::hypot(speed.vx, speed.vy) > .1_mps ||
+            units::math::abs(speed.omega) > .1_rad_per_s)
+          swerve.setSpeed(speed);
         else
           swerve.setSpeed(frc::ChassisSpeeds{});
       },
       {&swerve}));
   joystick.Button(7).OnTrue(
       frc2::InstantCommand([this]() { swerve.home(); }, {&swerve}).ToPtr());
-  joystick.Button(10).OnTrue(
-      frc2::InstantCommand([this]() { mode = 0; }, {}).ToPtr());
-  joystick.Button(11).OnTrue(
-      frc2::InstantCommand([this]() { mode = 1; }, {}).ToPtr());
-  joystick.Button(12).OnTrue(
-      frc2::InstantCommand([this]() { mode = 2; }, {}).ToPtr());
-  joystick.Button(13).OnTrue(
-      frc2::InstantCommand([this]() { mode = 3; }, {}).ToPtr());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
