@@ -59,10 +59,10 @@ void RobotContainer::ConfigureBindings() {
   swerve.SetDefaultCommand(frc2::RunCommand(
       [this]() {
         auto speed = frc::ChassisSpeeds::FromFieldRelativeSpeeds(
-            frc::ChassisSpeeds{.vx = -meters_per_second_t(-joystick.GetX()),
-                               .vy = meters_per_second_t(-joystick.GetY()),
+            frc::ChassisSpeeds{.vx = meters_per_second_t(joystick.GetY()),
+                               .vy = meters_per_second_t(joystick.GetX()),
                                .omega = radians_per_second_t(-joystick.GetZ())},
-            90_deg);
+            0_deg);
         if (units::math::hypot(speed.vx, speed.vy) > .1_mps ||
             units::math::abs(speed.omega) > .1_rad_per_s)
           swerve.setSpeed(speed);
@@ -76,6 +76,6 @@ void RobotContainer::ConfigureBindings() {
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   pp::PathPlannerTrajectory bluepath = pp::PathPlanner::loadPath(
-      "bluepath", pp::PathConstraints(4_mps, 3_mps_sq));
+      "testpath", pp::PathConstraints(4_mps, 3_mps_sq));
   return autoBuilder.followPath(bluepath);
 }

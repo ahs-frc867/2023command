@@ -65,7 +65,6 @@ public:
   void SetTurn(radian_t r) {
     using namespace ctre::phoenix::motorcontrol;
     turn_pid.Reset();
-    // r = units::math::fmod(r, 360_deg);
     turn_pid.SetSetpoint(r.value());
   }
 
@@ -78,6 +77,7 @@ public:
     if (umath::abs(fwd) < umath::abs(back)) {
       SetTurn(fwd + radian_t(turn_e.GetDistance()));
       drive.Set(ControlMode::PercentOutput, s.speed.value());
+      // drive.current
     } else {
       SetTurn(back + radian_t(turn_e.GetDistance()));
       drive.Set(ControlMode::PercentOutput, -s.speed.value());
