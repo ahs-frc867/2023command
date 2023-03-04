@@ -77,7 +77,6 @@ public:
     if (umath::abs(fwd) < umath::abs(back)) {
       SetTurn(fwd + radian_t(turn_e.GetDistance()));
       drive.Set(ControlMode::PercentOutput, s.speed.value());
-      // drive.current
     } else {
       SetTurn(back + radian_t(turn_e.GetDistance()));
       drive.Set(ControlMode::PercentOutput, -s.speed.value());
