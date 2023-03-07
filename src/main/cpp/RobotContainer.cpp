@@ -72,6 +72,9 @@ void RobotContainer::ConfigureBindings() {
       {&swerve}));
   joystick.Button(7).OnTrue(
       frc2::InstantCommand([this]() { swerve.home(); }, {&swerve}).ToPtr());
+  joystick.Button(11)
+      .OnTrue(frc2::InstantCommand([this]() { winch.setPos(0.5_m); }, {}).ToPtr())
+      .OnFalse(frc2::InstantCommand([this]() { winch.setPos(0_m); }, {}).ToPtr());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
