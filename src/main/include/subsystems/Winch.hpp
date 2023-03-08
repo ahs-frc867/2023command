@@ -15,23 +15,23 @@ using units::meter_t;
 using units::radian_t;
 struct Winch : public frc2::SubsystemBase {
   Winch()
-      : motor(8, rev::CANSparkMaxLowLevel::MotorType::kBrushless),
-        encoder(motor.GetEncoder()), pid(motor.GetPIDController()) {
-    pid.SetP(1);
+      : motor(8, rev::CANSparkMaxLowLevel::MotorType::kBrushed){
+    // pid.SetP(1);
   }
-  void setPos(meter_t pos) {
-    pid.SetReference((pos / spool_radius).convert<units::turns>().value(),
-                     rev::CANSparkMax::ControlType::kPosition);
-  }
+  // void setPos(meter_t pos) {
+  //   pid.SetReference((pos / spool_radius).convert<units::turns>().value(),
+  //                    rev::CANSparkMax::ControlType::kPosition);
+  // }
+  void setPower(double p) { motor.Set(p); }
 
 private:
   rev::CANSparkMax motor;
-  rev::SparkMaxRelativeEncoder encoder;
-  rev::SparkMaxPIDController pid;
+  // rev::SparkMaxRelativeEncoder encoder;
+  // rev::SparkMaxPIDController pid;
   // radius (m) / ang (rad)
   static constexpr auto spool_radius = 0.965_in / 1_rad;
   void Periodic() override {
-    frc::SmartDashboard::PutNumber("neo position", encoder.GetPosition());
+    // frc::SmartDashboard::PutNumber("neo position", encoder.GetPosition());
   }
 };
 } // namespace abval
