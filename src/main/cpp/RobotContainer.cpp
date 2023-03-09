@@ -70,8 +70,23 @@ void RobotContainer::ConfigureBindings() {
           swerve.setSpeed(frc::ChassisSpeeds{});
       },
       {&swerve}));
+  // joystick.Button(7).OnTrue(
+  //     frc2::InstantCommand([this]() { swerve.home(); }, {&swerve}).ToPtr());
   joystick.Button(7).OnTrue(
-      frc2::InstantCommand([this]() { swerve.home(); }, {&swerve}).ToPtr());
+      frc2::InstantCommand(
+          [this]() { arm.changeFeedConstants(joystick.GetZ(), 0, 0); },
+          {&arm})
+          .ToPtr());
+  joystick.Button(9).OnTrue(
+      frc2::InstantCommand(
+          [this]() { arm.changeFeedConstants(0, joystick.GetZ(), 0); },
+          {&arm})
+          .ToPtr());
+  joystick.Button(11).OnTrue(
+      frc2::InstantCommand(
+          [this]() { arm.changeFeedConstants(0, 0, joystick.GetZ()); },
+          {&arm})
+          .ToPtr());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
