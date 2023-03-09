@@ -76,13 +76,13 @@ void RobotContainer::ConfigureBindings() {
       {&swerve}));
   joystick.Button(7).OnTrue(
       frc2::InstantCommand([this]() { swerve.home(); }, {&swerve}).ToPtr());
-  joystick.Button(10).OnTrue(
+  joystick.Button(9).OnTrue(
       frc2::InstantCommand([this]() { mode = 0; }, {}).ToPtr());
-  joystick.Button(11).OnTrue(
+  joystick.Button(10).OnTrue(
       frc2::InstantCommand([this]() { mode = 1; }, {}).ToPtr());
-  joystick.Button(12).OnTrue(
+  joystick.Button(11).OnTrue(
       frc2::InstantCommand([this]() { mode = 2; }, {}).ToPtr());
-  joystick.Button(13).OnTrue(
+  joystick.Button(12).OnTrue(
       frc2::InstantCommand([this]() { mode = 3; }, {}).ToPtr());
 }
 
