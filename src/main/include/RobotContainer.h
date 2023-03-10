@@ -8,12 +8,14 @@
 #include <frc/event/EventLoop.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/button/CommandJoystick.h>
+#include <frc2/command/button/CommandXboxController.h>
 #include <pathplanner/lib/auto/SwerveAutoBuilder.h>
 
 #include "Constants.hpp"
-#include "subsystems/SwerveDrive.hpp"
 #include "subsystems/Arm.hpp"
+#include "subsystems/SwerveDrive.hpp"
 #include "subsystems/Winch.hpp"
+
 
 constexpr int operator""_port(unsigned long long i) noexcept { return i; }
 
@@ -25,6 +27,7 @@ public:
 
 private:
   frc2::CommandJoystick joystick{0_port};
+  frc2::CommandXboxController controller{1_port};
 
   void ConfigureBindings();
   abval::SwerveDrive swerve;
