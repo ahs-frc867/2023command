@@ -12,6 +12,7 @@
 
 #include "Constants.hpp"
 #include "subsystems/SwerveDrive.hpp"
+#include "subsystems/Arm.hpp"
 #include "subsystems/Winch.hpp"
 
 constexpr int operator""_port(unsigned long long i) noexcept { return i; }
@@ -32,4 +33,5 @@ private:
   frc::Pose2d basePose = {};
   frc::Pose2d getPose();
   abval::Winch winch;
+  abval::Arm arm;
 };
