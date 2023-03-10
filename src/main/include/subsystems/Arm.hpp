@@ -5,6 +5,7 @@
 #include "frc/PneumaticsModuleType.h"
 #include "frc/controller/PIDController.h"
 #include "frc/smartdashboard/SmartDashboard.h"
+#include "units/base.h"
 #include "units/voltage.h"
 #include <cmath>
 #include <ctre/phoenix/motorcontrol/can/TalonSRX.h>
@@ -33,14 +34,17 @@ class Arm : public frc2::SubsystemBase {
     auto distance = encoder.GetDistance();
     v_t v = (radian_t(distance) - radian_t(prev_s)) / 20_ms;
     prev_s = distance;
-    motor.Set(
-        ControlMode::PercentOutput,
-        (pid.Calculate(distance) +
-         feedforward.Calculate(radian_t(encoder.GetDistance()), v).value()) /
-            (12_V).value());
+    // motor.Set(
+    //     ControlMode::PercentOutput,
+    //     (pid.Calculate(distance) +
+    //      feedforward.Calculate(radian_t(encoder.GetDistance()), v).value()) /
+    //         (12_V).value());
     frc::SmartDashboard::PutNumber("kG", feedforward.kG.value());
     frc::SmartDashboard::PutNumber("kS", feedforward.kS.value());
     frc::SmartDashboard::PutNumber("kV", feedforward.kV.value());
+    frc::SmartDashboard::PutNumber(
+        "arm pos",
+        units::convert<units::radian, units::degree>(encoder.GetDistance()));
     // frc::SmartDashboard::PutNumber("kA", feedforward.kA.value());
   }
 
@@ -53,6 +57,11 @@ public:
     encoder.SetDistancePerPulse(2 * std::numbers::pi / 600);
   }
   void setTarget(radian_t target) noexcept { pid.SetSetpoint(target.value()); }
+  void setPower(double power) {
+    using ctre::phoenix::motorcontrol::ControlMode;
+    motor.Set(ControlMode::PercentOutput, power);
+    frc::SmartDashboard::PutNumber("power", power);
+  }
   void changeFeedConstants(double dG, double dS, double dV) {
     feedforward.kG += units::volt_t(dG);
     feedforward.kS += units::volt_t(dS);
@@ -61,5 +70,6 @@ public:
   }
   void open() { collector.Set(collector.kForward); }
   void close() { collector.Set(collector.kReverse); }
+  void neutral() { collector.Set(collector.kOff); }
 };
 } // namespace abval
