@@ -5,17 +5,18 @@
 #pragma once
 
 #include <AHRS.h>
+#include <frc/PowerDistribution.h>
 #include <frc/event/EventLoop.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/button/CommandJoystick.h>
 #include <frc2/command/button/CommandXboxController.h>
 #include <pathplanner/lib/auto/SwerveAutoBuilder.h>
 
+
 #include "Constants.hpp"
 #include "subsystems/Arm.hpp"
 #include "subsystems/SwerveDrive.hpp"
 #include "subsystems/Winch.hpp"
-
 
 constexpr int operator""_port(unsigned long long i) noexcept { return i; }
 
@@ -37,4 +38,5 @@ private:
   frc::Pose2d getPose();
   abval::Winch winch;
   abval::Arm arm;
+  frc::PowerDistribution power;
 };

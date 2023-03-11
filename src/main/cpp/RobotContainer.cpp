@@ -22,6 +22,7 @@
 
 #include "commands/Auto.hpp"
 #include "field.hpp"
+#include "frc/smartdashboard/SmartDashboard.h"
 #include "frc2/command/RunCommand.h"
 #include "subsystems/SwerveDrive.hpp"
 #include "units/angular_velocity.h"
@@ -42,7 +43,8 @@ RobotContainer::RobotContainer()
                   pp::PIDConstants(5.0, 0.0, 0.0),
                   pp::PIDConstants(0.5, 0.0, 0.0),
                   [this](frc::ChassisSpeeds s) { swerve.setSpeed(s); },
-                  eventMap, {&swerve}) {
+                  eventMap, {&swerve}),
+      power() {
   ConfigureBindings();
 }
 
@@ -63,30 +65,33 @@ void RobotContainer::ConfigureBindings() {
                                .vy = meters_per_second_t(joystick.GetX()),
                                .omega = radians_per_second_t(-joystick.GetZ())},
             0_deg);
-        if (units::math::hypot(speed.vx, speed.vy) > .1_mps ||
-            units::math::abs(speed.omega) > .1_rad_per_s)
+        if (units::math::hypot(speed.vx, speed.vy) > .2_mps ||
+            units::math::abs(speed.omega) > .2_rad_per_s)
           swerve.setSpeed(speed);
         else
           swerve.setSpeed(frc::ChassisSpeeds{});
+        frc::SmartDashboard::PutNumber("total pow:", power.GetTotalPower());
+        frc::SmartDashboard::PutNumber("total current:",
+                                       power.GetTotalCurrent());
       },
       {&swerve}));
   arm.SetDefaultCommand(frc2::RunCommand([this]() {
                           arm.setPower(controller.GetRawAxis(1));
                         }).ToPtr());
-  controller.A()
+  joystick.Button(7)
       .OnTrue(frc2::InstantCommand([this]() { arm.open(); }, {&arm}).ToPtr())
       .OnFalse(
           frc2::InstantCommand([this]() { arm.neutral(); }, {&arm}).ToPtr());
-  controller.B()
+  joystick.Button(8)
       .OnTrue(frc2::InstantCommand([this]() { arm.close(); }, {&arm}).ToPtr())
       .OnFalse(
           frc2::InstantCommand([this]() { arm.neutral(); }, {&arm}).ToPtr());
-  controller.X()
+  joystick.Button(9)
       .OnTrue(frc2::InstantCommand([this]() { winch.setPower(1); }, {&winch})
                   .ToPtr())
       .OnFalse(frc2::InstantCommand([this]() { winch.setPower(0); }, {&winch})
                    .ToPtr());
-  controller.Y()
+  joystick.Button(10)
       .OnTrue(frc2::InstantCommand([this]() { winch.setPower(-0.2); }, {&winch})
                   .ToPtr())
       .OnFalse(frc2::InstantCommand([this]() { winch.setPower(0); }, {&winch})
@@ -95,6 +100,6 @@ void RobotContainer::ConfigureBindings() {
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   pp::PathPlannerTrajectory bluepath = pp::PathPlanner::loadPath(
-      "testpath", pp::PathConstraints(4_mps, 3_mps_sq));
+      "taxi", pp::PathConstraints(1_mps, 1_mps_sq));
   return autoBuilder.followPath(bluepath);
 }
