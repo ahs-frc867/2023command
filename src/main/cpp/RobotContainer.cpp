@@ -131,5 +131,6 @@ void RobotContainer::ConfigureBindings() {
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   return autoBuilder.followPathWithEvents(pp::PathPlanner::loadPath(
-      "balance", pp::PathConstraints(1_mps, 1_mps_sq)));
+      frc::SmartDashboard::GetString("auto-name", "balance-mid"),
+      pp::PathConstraints(1_mps, 1_mps_sq)));
 }

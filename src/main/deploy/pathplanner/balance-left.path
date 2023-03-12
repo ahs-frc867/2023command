@@ -2,13 +2,13 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 1.0,
-        "y": 3.0
+        "x": 1.9351347707434756,
+        "y": 4.3405556953294
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0,
-        "y": 3.0
+        "x": 1.9161389033678544,
+        "y": 3.637708602431423
       },
       "holonomicAngle": 0,
       "isReversal": false,
@@ -18,22 +18,22 @@
       "stopEvent": {
         "names": [],
         "executionBehavior": "parallel",
-        "waitBehavior": "after",
+        "waitBehavior": "none",
         "waitTime": 0
       }
     },
     {
       "anchorPoint": {
-        "x": 2.0301141076215807,
-        "y": 3.01084497903593
+        "x": 1.9541306381190968,
+        "y": 3.4572478623630234
       },
       "prevControl": {
-        "x": 1.6976864285482132,
-        "y": 2.9823511779724985
+        "x": 1.9541306381190968,
+        "y": 3.4477499286752127
       },
       "nextControl": {
-        "x": 1.6976864285482132,
-        "y": 2.9823511779724985
+        "x": 1.9541306381190968,
+        "y": 3.4477499286752127
       },
       "holonomicAngle": 0,
       "isReversal": true,
@@ -49,12 +49,12 @@
     },
     {
       "anchorPoint": {
-        "x": 1.0043372693380463,
-        "y": 3.0013470453481195
+        "x": 3.815725640929956,
+        "y": 3.485741663426455
       },
       "prevControl": {
-        "x": 1.2892752799723612,
-        "y": 2.972853244284688
+        "x": 2.815725640929956,
+        "y": 3.485741663426455
       },
       "nextControl": null,
       "holonomicAngle": 0,
@@ -63,19 +63,14 @@
       "isLocked": false,
       "isStopPoint": false,
       "stopEvent": {
-        "names": [],
-        "executionBehavior": "parallel",
+        "names": [
+          "balance"
+        ],
+        "executionBehavior": "sequential",
         "waitBehavior": "none",
         "waitTime": 0
       }
     }
   ],
-  "markers": [
-    {
-      "position": 1.0,
-      "names": [
-        "event"
-      ]
-    }
-  ]
+  "markers": []
 }
