@@ -12,8 +12,11 @@
 #include <frc2/command/button/CommandXboxController.h>
 #include <pathplanner/lib/auto/SwerveAutoBuilder.h>
 
-
 #include "Constants.hpp"
+#include "frc/kinematics/ChassisSpeeds.h"
+#include "frc2/command/Command.h"
+#include "frc2/command/CommandHelper.h"
+#include "frc2/command/Subsystem.h"
 #include "subsystems/Arm.hpp"
 #include "subsystems/SwerveDrive.hpp"
 #include "subsystems/Winch.hpp"

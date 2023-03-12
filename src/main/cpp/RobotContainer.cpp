@@ -14,6 +14,7 @@
 #include <frc2/command/CommandScheduler.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/button/Trigger.h>
+#include <functional>
 #include <pathplanner/lib/PathPlanner.h>
 #include <units/angle.h>
 #include <units/length.h>
@@ -22,6 +23,7 @@
 
 #include "commands/Auto.hpp"
 #include "field.hpp"
+#include "frc/PowerDistribution.h"
 #include "frc/smartdashboard/SmartDashboard.h"
 #include "frc2/command/RunCommand.h"
 #include "subsystems/SwerveDrive.hpp"
@@ -30,21 +32,50 @@
 
 namespace pp = pathplanner;
 
-const static std::unordered_map<std::string, std::shared_ptr<frc2::Command>>
-    eventMap;
+struct BalanceCommand
+    : public frc2::CommandHelper<frc2::Command, BalanceCommand> {
+  typedef std::function<void(frc::ChassisSpeeds)> OutFun;
+  AHRS &gyro;
+  OutFun out;
+  std::initializer_list<frc2::Subsystem *> req;
+
+  BalanceCommand(AHRS &gyro, OutFun out,
+                 std::initializer_list<frc2::Subsystem *> req)
+      : gyro(gyro), out(out), req(req) {}
+  virtual void Initialize() override {}
+  virtual void Execute() override {
+    if (gyro.GetYaw() > 15) {
+      out(frc::ChassisSpeeds{.vx = 0.6_mps});
+    } else if (gyro.GetYaw() < -15) {
+      out(frc::ChassisSpeeds{.vx = -0.6_mps});
+    }
+  }
+
+  virtual void End(bool interrupted) override {
+    out(frc::ChassisSpeeds{.vx = 0_mps});
+  }
+
+  virtual wpi::SmallSet<frc2::Subsystem *, 4> GetRequirements() const override {
+    return {req};
+  }
+};
 
 RobotContainer::RobotContainer()
     : gyro(frc::SPI::Port::kMXP),
-      autoBuilder([this]() { return getPose(); },
-                  [this](frc::Pose2d p) {
-                    gyro.Reset();
-                    basePose = p;
-                  },
-                  pp::PIDConstants(5.0, 0.0, 0.0),
-                  pp::PIDConstants(0.5, 0.0, 0.0),
-                  [this](frc::ChassisSpeeds s) { swerve.setSpeed(s); },
-                  eventMap, {&swerve}),
-      power() {
+      autoBuilder(
+          [this]() { return getPose(); },
+          [this](frc::Pose2d p) {
+            gyro.Reset();
+            basePose = p;
+          },
+          pp::PIDConstants(5.0, 0.0, 0.0), pp::PIDConstants(0.5, 0.0, 0.0),
+          [this](frc::ChassisSpeeds s) { swerve.setSpeed(s); },
+          {{"balance",
+            std::make_shared<BalanceCommand>(
+                gyro, [this](frc::ChassisSpeeds s) { swerve.setSpeed(s); },
+                std::initializer_list<frc2::Subsystem *>{&swerve})}},
+          {&swerve}),
+      power(0, frc::PowerDistribution::ModuleType::kCTRE) {
   ConfigureBindings();
 }
 
@@ -99,7 +130,6 @@ void RobotContainer::ConfigureBindings() {
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  pp::PathPlannerTrajectory bluepath = pp::PathPlanner::loadPath(
-      "taxi", pp::PathConstraints(1_mps, 1_mps_sq));
-  return autoBuilder.followPath(bluepath);
+  return autoBuilder.followPathWithEvents(pp::PathPlanner::loadPath(
+      "balance", pp::PathConstraints(1_mps, 1_mps_sq)));
 }
